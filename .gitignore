@@ -1,0 +1,18 @@
+/vendor/
+/composer.lock
+.DS_Store
+.nbproject/
+*.swp
+*.swo
+*~
+
+# Development artifacts
+.config/
+.opencode/
+.understand-anything/
+graphify-out/cache/
+graphify-out/.graphify_labels.json
+graphify-out/.graphify_root
+
+# Keep graph.json and graph.html for team exploration
+# Do NOT ignore: graphify-out/graph.json graphify-out/graph.html
