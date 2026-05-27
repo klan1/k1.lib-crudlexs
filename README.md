@@ -10,7 +10,7 @@ composer require klan1/k1.lib-crudlexs
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.0+
 - klan1/k1.lib
 
 ## License

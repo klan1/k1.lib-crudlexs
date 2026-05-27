@@ -7,28 +7,47 @@ use k1lib\html\div;
 use k1lib\html\input;
 use function k1lib\common\unserialize_var;
 
+/**
+ * Search helper object for creating search forms.
+ * Extends creating functionality to provide search interface with caller communication.
+ */
 class search_helper extends creating {
 
     /**
-     *
-     * @var array 
+     * Database table data for search criteria.
+     * @var array
      */
     public $db_table_data = FALSE;
 
     /**
-     *
-     * @var bool 
+     * Keys for the database table data.
+     * @var bool
      */
     protected $db_table_data_keys = FALSE;
 
     /**
+     * ID of the calling object for result communication.
      * @var string
      */
     protected $caller_objetc_id = null;
+
+    /**
+     * Whether to enable POST data capture for search.
+     * @var bool
+     */
     protected $search_catch_post_enable = TRUE;
+
+    /**
+     * URL of the calling object for result communication.
+     * @var string
+     */
     protected $caller_url = null;
 
-// FILTERS
+    /**
+     * Constructs a search helper object.
+     *
+     * @param db_table $db_table The database table object.
+     */
     public function __construct(db_table $db_table) {
         parent::__construct($db_table, FALSE);
         if (isset($_GET['caller-id'])) {
@@ -46,6 +65,12 @@ class search_helper extends creating {
         $this->db_table->set_db_table_show_rule("show-search");
     }
 
+    /**
+     * Generates and returns the HTML search form.
+     * Overrides parent to wrap form in container and set form attributes.
+     *
+     * @return div The search form container.
+     */
     public function do_html_object() {
         if ($this->search_catch_post_enable && $this->catch_post_data()) {
             $this->put_post_data_on_table_data();
@@ -66,6 +91,12 @@ class search_helper extends creating {
         return $div_container;
     }
 
+    /**
+     * Captures and processes POST data from search form.
+     * Overrides parent to merge with caller's serialized search data.
+     *
+     * @return bool TRUE if data captured successfully, FALSE otherwise.
+     */
     function catch_post_data() {
         $search_post = unserialize_var(urlencode($this->caller_url));
         if (empty($search_post)) {
@@ -79,6 +110,12 @@ class search_helper extends creating {
         }
     }
 
+    /**
+     * Sets whether to enable POST data capture for search.
+     *
+     * @param bool $search_catch_post_enable Whether to enable search POST capture.
+     * @return void
+     */
     public function set_search_catch_post_enable($search_catch_post_enable) {
         $this->search_catch_post_enable = $search_catch_post_enable;
     }

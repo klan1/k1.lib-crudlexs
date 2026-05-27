@@ -17,49 +17,93 @@ use function k1lib\html\get_link_button;
 use function k1lib\html\html_header_go;
 
 /**
- * 
+ * Creating object for handling new record creation.
+ * Manages form rendering, data validation, and database insertion.
  */
 class creating extends base_with_data implements base_interface {
 
     /**
+     * Array of POST data received from form submission.
      * @var array
      */
     protected $post_incoming_array = [];
 
     /**
+     * Flag indicating whether POST data has been captured.
      * @var bool
      */
     protected $post_data_catched = FALSE;
 
     /**
+     * Array of validation errors from POST data processing.
      * @var array
      */
     protected $post_validation_errors = [];
 
     /**
+     * Array of password field names for special handling.
      * @var array
      */
     protected $post_password_fields = [];
+
+    /**
+     * Current state of the object (create or update).
+     * @var string
+     */
     protected $object_state = "create";
 
     /**
-     *
+     * Flag to enable Foundation form validation.
      * @var bool
      */
     protected $enable_foundation_form_check = FALSE;
+
+    /**
+     * Whether to show the cancel button in the form.
+     * @var bool
+     */
     protected $show_cancel_button = TRUE;
+
+    /**
+     * Result of the insert operation.
+     * @var mixed
+     */
     protected $inserted_result = NULL;
+
+    /**
+     * Flag indicating if record was successfully inserted.
+     * @var mixed
+     */
     protected $inserted = NULL;
+
+    /**
+     * CSS classes for form column layout.
+     * @var string
+     */
     protected $html_form_column_classes = "lg-8 md-10 sm-11";
+
+    /**
+     * CSS classes for data column layout.
+     * @var string
+     */
     protected $html_column_classes = "sm-12 column";
 
+    /**
+     * Constructs a creating object for new record creation.
+     *
+     * @param mixed $db_table The database table object.
+     * @param mixed $row_keys_text Row keys text (typically FALSE for create).
+     */
     public function __construct($db_table, $row_keys_text) {
         parent::__construct($db_table, $row_keys_text);
     }
 
     /**
-     * Override the original function to create an empty array the meets the requiriements for all the metods
-     * @return boolean
+     * Loads database table data, optionally with blank values for create forms.
+     * Overrides parent method to create an empty array structure for all fields.
+     *
+     * @param bool $blank_data If TRUE, loads with empty values instead of from DB.
+     * @return bool TRUE on success, FALSE otherwise.
      */
     public function load_db_table_data($blank_data = FALSE) {
         if (!$blank_data) {
@@ -92,10 +136,11 @@ class creating extends base_with_data implements base_interface {
     }
 
     /**
-     * 
-     * @param string $field
-     * @param string $value
-     * @return boolean
+     * Sets a specific incoming POST value for a field.
+     *
+     * @param string $field The field name to set.
+     * @param mixed $value The value to assign.
+     * @return bool TRUE if value was set, FALSE otherwise.
      */
     public function set_post_incomming_value($field, $value) {
         if ($this->post_data_catched && key_exists($field, $this->post_incoming_array)) {
@@ -107,13 +152,13 @@ class creating extends base_with_data implements base_interface {
     }
 
     /**
-     * Use the $_POST data received by catch_post_data() to put in db_table_data and db_table_data_filtered. THIS HAVE be used before filters.
-     * @param int $row_to_put_on
-     * @return boolean
+     * Transfers captured POST data into the table data structure.
+     * Must be called before any filters are applied.
+     *
+     * @return bool TRUE if data was transferred, FALSE otherwise.
      */
     public function put_post_data_on_table_data() {
         if ((empty($this->db_table_data)) || empty($this->post_incoming_array)) {
-            //            trigger_error(__FUNCTION__ . ": There are not data to work yet", E_USER_WARNING);
             return FALSE;
         }
         foreach ($this->db_table_data[1] as $field => $value) {
@@ -125,15 +170,18 @@ class creating extends base_with_data implements base_interface {
         return TRUE;
     }
 
+    /**
+     * Validates password field submissions including current, new, and confirm values.
+     * Handles both create and update scenarios with appropriate validation.
+     *
+     * @return void
+     */
     function do_password_fields_validation() {
-        /**
-         * PASSWORD CATCH
-         */
         $password_fields = [];
         $current = null;
         $new = null;
         $confirm = null;
-        // EXTRACT THE PASSWORD DATA
+
         foreach ($_POST as $field => $value) {
             $actual_password_field = strstr($field, "_password_", TRUE);
             if ($actual_password_field !== FALSE) {
@@ -154,7 +202,7 @@ class creating extends base_with_data implements base_interface {
                 }
             }
         }
-        //  verify
+
         foreach ($password_fields as $field => $passwords) {
             if (array_key_exists('new', $passwords) && array_key_exists('confirm', $passwords)) {
                 if (($passwords['new'] === $passwords['confirm']) && (!empty($passwords['new']))) {
@@ -191,25 +239,28 @@ class creating extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Checks if POST data has been captured.
+     *
+     * @return bool TRUE if data is captured, FALSE otherwise.
+     */
     public function get_post_data_catched() {
         return $this->post_data_catched;
     }
 
     /**
-     * Get and check the $_POST data, then remove the non table values. If do_table_field_name_encrypt is TRUE then will decrypt them too.
-     * @return boolean
+     * Captures and processes POST data from form submission.
+     * Validates, decrypts field names if encryption is enabled, and cleans the data.
+     *
+     * @return bool TRUE if data was captured successfully, FALSE otherwise.
      */
     function catch_post_data() {
         $this->do_file_uploads_validation();
         $this->do_password_fields_validation();
-        /**
-         * Search util hack
-         */
+
         $post_data_to_use = unserialize_var("post-data-to-use");
         $post_data_table_config = unserialize_var("post-data-table-config");
-        /**
-         * lets fix the non-same key name
-         */
+
         $fk_found_array = [];
         $found_fk_key = false;
         if (!empty($post_data_table_config)) {
@@ -225,13 +276,12 @@ class creating extends base_with_data implements base_interface {
                 }
             }
         }
-        ///
+
         if (!empty($post_data_to_use)) {
             $_POST = $post_data_to_use;
             unset_serialize_var("post-data-to-use");
             unset_serialize_var("post-data-table-config");
         }
-
 
         $_POST = check_all_incomming_vars($_POST);
 
@@ -255,8 +305,6 @@ class creating extends base_with_data implements base_interface {
                 }
                 $this->post_incoming_array = clean_array_with_guide($this->post_incoming_array, $this->db_table->get_db_table_config());
 
-                // PUT BACK the password data
-                //                $this->post_incoming_array = array_merge($this->post_incoming_array, $password_array);
                 $this->post_data_catched = TRUE;
                 return TRUE;
             } else {
@@ -268,19 +316,16 @@ class creating extends base_with_data implements base_interface {
     }
 
     /**
-     * Put an input object of certain type depending of the MySQL Table Feld Type on each data row[n]
-     * @param int $row_to_apply
+     * Inserts HTML input elements into the data row based on field types.
+     * Creates appropriate input controls for each database field.
+     *
+     * @param bool $create_labels_tags_on_headers Whether to create label tags for headers.
+     * @return void
      */
     public function insert_inputs_on_data_row($create_labels_tags_on_headers = TRUE) {
-        // Row to apply is constant coz this is CREATE or EDIT and there is allways just 1 set of data to manipulate.
         $row_to_apply = 1;
-        /**
-         * VALUES
-         */
+
         foreach ($this->db_table_data_filtered[$row_to_apply] as $field => $value) {
-            /**
-             * Switch on DB field specific TYPES
-             */
             switch ($this->db_table->get_field_config($field, 'type')) {
                 case 'enum':
                     $input_tag = input_helper::enum_type($this, $field);
@@ -296,9 +341,6 @@ class creating extends base_with_data implements base_interface {
                     }
                     break;
                 default:
-                    /**
-                     * Switch on K1lib DB Table Config VALIDATION TYPES
-                     */
                     switch ($this->db_table->get_field_config($field, 'validation')) {
                         case "boolean":
                             $input_tag = input_helper::boolean_type($this, $field);
@@ -307,11 +349,7 @@ class creating extends base_with_data implements base_interface {
                             $input_tag = input_helper::file_upload($this, $field);
                             break;
                         case "password":
-                            if (empty($value)) {
-                                $input_tag = input_helper::password_type($this, $field, $this->object_state);
-                            } else {
-                                $input_tag = input_helper::password_type($this, $field, $this->object_state);
-                            }
+                            $input_tag = input_helper::password_type($this, $field, $this->object_state);
                             break;
                         default:
                             $input_tag = input_helper::default_type($this, $field);
@@ -319,9 +357,7 @@ class creating extends base_with_data implements base_interface {
                     }
                     break;
             }
-            /**
-             * LABELS 
-             */
+
             if ($create_labels_tags_on_headers) {
                 $label_tag = new label($this->db_table_data_filtered[0][$field], $this->encrypt_field_name($field));
                 if ($this->db_table->get_field_config($field, 'required') === TRUE) {
@@ -332,9 +368,7 @@ class creating extends base_with_data implements base_interface {
                 }
                 $this->db_table_data_filtered[0][$field] = $label_tag;
             }
-            /**
-             * ERROR TESTING
-             */
+
             if (isset($this->post_validation_errors[$field])) {
                 $div_error = new grid_row(2);
 
@@ -349,9 +383,7 @@ class creating extends base_with_data implements base_interface {
 
                 $div_error->link_value_obj($input_tag);
             }
-            /**
-             * END ERROR TESTING
-             */
+
             if ($this->db_table->get_field_config($field, 'required') === TRUE) {
                 if ($this->enable_foundation_form_check) {
                     $input_tag->set_attrib("required", TRUE);
@@ -372,11 +404,11 @@ class creating extends base_with_data implements base_interface {
     }
 
     /**
-     * This will check every data with the db_table_config.
-     * @return boolean TRUE on no errors or FALSE is some field has any problem.
+     * Validates all POST data against the database table configuration.
+     *
+     * @return bool TRUE if no errors found, FALSE otherwise.
      */
     public function do_post_data_validation() {
-        //        $this->do_file_uploads_validation();
         $validation_result = $this->db_table->do_data_validation($this->post_incoming_array);
         if ($validation_result !== TRUE) {
             $this->post_validation_errors = array_merge($this->post_validation_errors, $validation_result);
@@ -394,6 +426,11 @@ class creating extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Validates file upload submissions from $_FILES.
+     *
+     * @return void
+     */
     public function do_file_uploads_validation() {
         if (!empty($_FILES)) {
             foreach ($_FILES as $encoded_field => $data) {
@@ -409,53 +446,39 @@ class creating extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Enables Foundation form validation on inputs.
+     *
+     * @return void
+     */
     public function enable_foundation_form_check() {
         $this->enable_foundation_form_check = TRUE;
     }
 
     /**
-     * @return div
+     * Generates and returns the HTML form for creating a new record.
+     *
+     * @return div|false The form container div, or FALSE if no data exists.
      */
     public function do_html_object() {
         if (!empty($this->db_table_data_filtered)) {
             $this->div_container->set_attrib("class", "k1lib-crudlexs-create");
 
-            /**
-             * DIV content
-             */
             $this->div_container->set_attrib("class", "k1lib-form-generator " . $this->html_form_column_classes, TRUE);
             $this->div_container->set_attrib("style", "margin:0 auto;", TRUE);
 
-            /**
-             * FORM time !!
-             */
             $html_form = new form();
             $html_form->append_to($this->div_container);
-//            if ($this->enable_foundation_form_check) {
-//                $html_form->set_attrib("data-abide", TRUE);
-//            }
 
             $form_header = $html_form->append_div("k1lib-form-header mb-1");
             $form_body = $html_form->append_div("k1lib-form-body row");
-//            $form_grid = new grid(1, 1, $form_body);
-////            $form_grid->row(1)->align_center();
-//            $form_grid->row(1)->cell(1)->general(12)->medium(6);
-//
             $form_footer = $html_form->append_div("k1lib-form-footer");
             $form_footer->set_attrib("style", "margin-top:0.9em;");
             $form_buttons = $html_form->append_div("k1lib-form-buttons");
 
-            /**
-             * Hidden input
-             */
             $hidden_input = new input("hidden", "k1magic", "123123");
             $hidden_input->append_to($html_form);
-            // FORM LAYOUT
-            // <div class="grid-x">
 
-            /**
-             * TEXT LABEL-FIELDS to guide process
-             */
             $db_table = $this->db_table;
             $constant_fk_fields = $db_table->get_constant_fields();
             if (!empty($constant_fk_fields)) {
@@ -471,9 +494,6 @@ class creating extends base_with_data implements base_interface {
                     $label_value = $db_table->db->get_fk_field_label($table_name, $constant_fk_fields, $db_table->get_db_table_config());
 
                     if (($label_value !== 0) && ($label_value !== NULL)) {
-                        /**
-                         * ALL the TEXT field types are sendend to the last position to show nicely the HTML on it.
-                         */
                         $div_rows = $row->append_div("col-md-6 col-12 k1lib-data-item");
 
                         $form_group = $div_rows->append_div('form-group');
@@ -482,9 +502,7 @@ class creating extends base_with_data implements base_interface {
                     }
                 }
             }
-            /**
-             * END
-             */
+
             $row_number = 0;
             foreach ($this->db_table_data_filtered[1] as $field => $value) {
                 if (array_key_exists($field, array_flip($this->fields_to_hide))) {
@@ -495,10 +513,6 @@ class creating extends base_with_data implements base_interface {
                 $row->append_to($form_body);
             }
 
-
-            /**
-             * BUTTONS
-             */
             $submit_button = new input("submit", "k1send", creating_strings::$button_submit, "btn icon btn-outline-success btn-sm");
             if ($this->show_cancel_button) {
                 if (isset($_GET['cancel-url'])) {
@@ -511,13 +525,7 @@ class creating extends base_with_data implements base_interface {
             }
 
             $buttons_div->append_to($form_buttons);
-            // $buttons_div->cell(1)->remove_childs();
-            // $buttons_div->cell(2)->set_class("text-center", TRUE);
 
-
-            /**
-             * Prepare output
-             */
             return $this->div_container;
         } else {
             return FALSE;
@@ -525,10 +533,11 @@ class creating extends base_with_data implements base_interface {
     }
 
     /**
-     * This uses the post_incoming_array (Please verify it first) to make the insert.
-     * NOTE: If the table has multiple KEYS the auto_number HAS to be on the first position, if not, the redirection won't works.
-     * @param type $url_to_go
-     * @return boolean TRUE on sucess or FALSE on error.
+     * Performs the database insert operation with the validated POST data.
+     * NOTE: If the table has multiple keys, auto_increment must be first for redirect to work.
+     *
+     * @param string $url_to_go Redirect URL (not used in current implementation).
+     * @return bool TRUE on success, FALSE on error.
      */
     public function do_insert() {
         $error_data = NULL;
@@ -545,12 +554,16 @@ class creating extends base_with_data implements base_interface {
             }
             DOM_notification::queue_mesasage(creating_strings::$data_not_inserted, "warning", $this->notifications_div_id);
             DOM_notification::queue_mesasage(print_r($error_data, TRUE), 'alert', $this->notifications_div_id);
-//            DOM_notification::queue_mesasage(print_r($sql_query, TRUE), 'alert', $this->notifications_div_id);
             $this->inserted = FALSE;
             return FALSE;
         }
     }
 
+    /**
+     * Gets the primary key values of the newly inserted record.
+     *
+     * @return array|false Array of key values, or FALSE if not inserted.
+     */
     public function get_inserted_keys() {
         if (($this->inserted) && ($this->inserted_result !== FALSE)) {
             $last_inserted_id = [];
@@ -571,6 +584,11 @@ class creating extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Gets the complete data of the newly inserted record.
+     *
+     * @return array|false Array of field values, or FALSE if not inserted.
+     */
     public function get_inserted_data() {
         if (($this->inserted) && ($this->inserted_result !== FALSE)) {
             $last_inserted_id = [];
@@ -587,6 +605,13 @@ class creating extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Redirects to specified URL after successful insert.
+     *
+     * @param string $url_to_go The URL to redirect to. Supports --rowkeys-- and --authcode-- placeholders.
+     * @param bool $do_redirect If TRUE, performs header redirect; if FALSE, returns URL.
+     * @return string|void Returns URL string if redirect is disabled, void otherwise.
+     */
     public function post_insert_redirect($url_to_go = "../", $do_redirect = TRUE) {
         if (($this->inserted) && ($this->inserted_result !== FALSE)) {
 
@@ -615,30 +640,70 @@ class creating extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Gets the captured POST data array.
+     *
+     * @return array The POST data.
+     */
     function get_post_data() {
         return $this->post_incoming_array;
     }
 
+    /**
+     * Sets POST data directly.
+     *
+     * @param array $post_incoming_array The data to set.
+     * @return void
+     */
     public function set_post_data(array $post_incoming_array) {
         $this->post_incoming_array = array_merge($this->post_incoming_array, $post_incoming_array);
     }
 
+    /**
+     * Sets CSS classes for data column layout.
+     *
+     * @param string $html_column_classes The CSS classes to apply.
+     * @return void
+     */
     public function set_html_column_classes($html_column_classes) {
         $this->html_column_classes = $html_column_classes;
     }
 
+    /**
+     * Sets CSS classes for form column layout.
+     *
+     * @param string $html_form_column_classes The CSS classes to apply.
+     * @return void
+     */
     public function set_html_form_column_classes($html_form_column_classes) {
         $this->html_form_column_classes = $html_form_column_classes;
     }
 
+    /**
+     * Gets a reference to the incoming POST array.
+     *
+     * @return array Reference to the POST data array.
+     */
     public function &get_post_incoming_array() {
         return $this->post_incoming_array;
     }
 
+    /**
+     * Gets validation errors from POST processing.
+     *
+     * @return array Array of validation errors.
+     */
     public function get_post_validation_errors() {
         return $this->post_validation_errors;
     }
 
+    /**
+     * Sets validation errors, optionally appending to existing errors.
+     *
+     * @param array $errors_array Array of errors to set.
+     * @param bool $append_array If TRUE, appends to existing errors; if FALSE, replaces.
+     * @return void
+     */
     public function set_post_validation_errors(array $errors_array, $append_array = TRUE) {
         if ($append_array) {
             $this->post_validation_errors = array_merge($this->post_validation_errors, $errors_array);
@@ -647,6 +712,12 @@ class creating extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Sets whether to show the cancel button.
+     *
+     * @param bool $show_cancel_button Whether to show cancel button.
+     * @return void
+     */
     public function set_show_cancel_button($show_cancel_button) {
         $this->show_cancel_button = $show_cancel_button;
     }

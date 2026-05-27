@@ -10,13 +10,30 @@ use k1lib\html\h3;
 use k1lib\notifications\on_DOM as DOM_notification;
 
 /**
- * 
+ * Reading object for displaying a single database record in read mode.
+ * Renders field values as read-only HTML elements within a structured layout.
  */
 class reading extends base_with_data implements base_interface {
 
+    /**
+     * Reference to the parent board object.
+     * @var read
+     */
     public read $parent_board;
+
+    /**
+     * CSS classes for HTML column layout.
+     * @var string
+     */
     private $html_column_classes = "col-md-6 col-12";
 
+    /**
+     * Constructs a reading object for displaying a single record.
+     *
+     * @param mixed $db_table The database table object.
+     * @param string $row_keys_text URL-encoded row keys text identifying the record.
+     * @param string $custom_auth_code Optional custom authentication code.
+     */
     public function __construct($db_table, $row_keys_text, $custom_auth_code = "") {
         if (!empty($row_keys_text)) {
             parent::__construct($db_table, $row_keys_text, $custom_auth_code);
@@ -24,12 +41,15 @@ class reading extends base_with_data implements base_interface {
             DOM_notification::queue_mesasage(object_base_strings::$error_no_row_keys_text, "alert", $this->notifications_div_id, common_strings::$error);
         }
 
-        /**
-         * Necessary for do not loose the inputs with blank or null data
-         */
         $this->skip_blanks_on_filters = TRUE;
     }
 
+    /**
+     * Generates and returns the HTML representation of the reading object.
+     * Creates a responsive grid layout displaying field labels and values.
+     *
+     * @return div|false Returns the HTML container div, or FALSE if no data exists.
+     */
     public function do_html_object() {
         if ($this->db_table_data) {
             $this->div_container->set_attrib("class", "row k1lib-crudlexs-" . $this->css_class);
@@ -47,7 +67,6 @@ class reading extends base_with_data implements base_interface {
             if (!empty($data_label)) {
                 $this->remove_labels_from_data_filtered();
                 $this->parent_board->set_board_name($data_label);
-//                (new h3($data_label, "k1lib-data-group-title " . $this->css_class, "label-field-{$this->object_id}"))->append_to($data_group);
             }
             $labels = $this->db_table_data_filtered[0];
             $values = $this->db_table_data_filtered[1];
@@ -58,9 +77,6 @@ class reading extends base_with_data implements base_interface {
                     continue;
                 }
                 if (($value !== 0) && ($value !== NULL)) {
-                    /**
-                     * ALL the TEXT field types are sendend to the last position to show nicely the HTML on it.
-                     */
                     $field_type = $this->db_table->get_field_config($field, 'type');
                     $field_alias = $this->db_table->get_field_config($field, 'alias');
                     if ($field_type == 'text') {
@@ -93,10 +109,20 @@ class reading extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Gets the CSS classes used for HTML column layout.
+     *
+     * @return string The HTML column classes.
+     */
     public function get_html_column_classes() {
         return $this->html_column_classes;
     }
 
+    /**
+     * Sets the CSS classes for HTML column layout.
+     *
+     * @param string $html_column_classes The CSS classes to apply.
+     */
     public function set_html_column_classes($html_column_classes) {
         $this->html_column_classes = $html_column_classes;
     }

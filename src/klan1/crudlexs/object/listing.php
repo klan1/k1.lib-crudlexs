@@ -21,107 +21,132 @@ use const k1app\K1APP_UPLOADS_URL;
 use const k1app\K1APP_URL;
 
 /**
- * 
+ * Listing object for displaying multiple database records in a paginated table.
+ * Handles data retrieval, pagination, sorting, and HTML table rendering.
  */
 class listing extends base_with_data implements base_interface {
 
     /**
+     * HTML table object for displaying data.
      * @var table_from_data
      */
     public $html_table;
 
     /**
+     * Flag indicating if data has been loaded successfully.
      * @var bool
      */
     public $data_loaded = false;
 
     /**
+     * Total number of rows in the database table.
      * @var int
      */
     protected $total_rows = 0;
 
     /**
+     * Total number of rows matching current filters.
      * @var int
      */
     protected $total_rows_filter = 0;
 
     /**
+     * Total number of pages based on rows per page.
      * @var int
      */
     protected $total_pages = 0;
 
     /**
+     * Character limit for text displayed in table cells.
+     * NULL means no limit.
      * @var int
      */
     static public $characters_limit_on_cell = null;
 
     /**
+     * Number of rows to display per page.
      * @var int
      */
     static public $rows_per_page = 25;
 
     /**
+     * Maximum rows allowed when "show all" is selected.
      * @var int
      */
     static public $rows_limit_to_all = 200;
 
     /**
-     *
-     * @var array 
+     * Available options for rows per page selector.
+     * @var array
      */
     static public $rows_per_page_options = [5, 10, 25, 50, 100, 'all'];
 
     /**
+     * Currently displayed page number.
      * @var int
      */
     protected $actual_page = 1;
 
     /**
+     * First row number on current page.
      * @var int
      */
     protected $first_row_number = 1;
 
     /**
+     * Last row number on current page.
      * @var int
      */
     protected $last_row_number = 1;
 
     /**
+     * Statistics message template.
      * @var string
      */
     protected $stat_msg;
 
     /**
+     * URL for the first page link.
      * @var int
      */
     protected $page_first = false;
 
     /**
+     * URL for the previous page link.
      * @var int
      */
     protected $page_previous = false;
 
     /**
+     * URL for the next page link.
      * @var int
      */
     protected $page_next = false;
 
     /**
+     * URL for the last page link.
      * @var int
      */
     protected $page_last = false;
 
     /**
+     * Whether to enable sorting by column headers.
      * @var bool
      */
     protected $do_orderby_headers = TRUE;
 
     /**
-     * Smarty template PATH to use with each data row
+     * Smarty template path for custom row rendering.
      * @var string
      */
     protected string $data_row_template;
 
+    /**
+     * Constructs a listing object for displaying multiple records.
+     *
+     * @param mixed $db_table The database table object.
+     * @param mixed $row_keys_text Row keys text (typically FALSE for list).
+     */
     public function __construct($db_table, $row_keys_text) {
         parent::__construct($db_table, $row_keys_text);
 
@@ -131,8 +156,10 @@ class listing extends base_with_data implements base_interface {
     }
 
     /**
-     * 
-     * @return div
+     * Generates and returns the HTML representation of the listing.
+     * Creates a table with pagination controls and optional sorting.
+     *
+     * @return div The HTML container div with table and controls.
      */
     public function do_html_object(): div {
         $table_alias = db_table_aliases::encode($this->db_table->get_db_table_name());
@@ -140,14 +167,11 @@ class listing extends base_with_data implements base_interface {
         if (empty($this->data_row_template)) {
 
             $this->div_container->set_attrib("class", "k1lib-crudlexs-list-content table-responsive");
-//        $this->div_container->set_style('margin: 0px -24px');
             if ($this->db_table_data) {
                 if ($this->do_orderby_headers) {
                     $this->do_orderby_headers();
                 }
-                /**
-                 * Create the HTML table from DATA lodaed 
-                 */
+
                 $this->html_table = new table_from_data("k1lib-crudlexs-list table table-striped table-hover mb-0 {$table_alias}");
                 $this->html_table->append_to($this->div_container);
                 $this->html_table->set_max_text_length_on_cell(self::$characters_limit_on_cell);
@@ -164,7 +188,6 @@ class listing extends base_with_data implements base_interface {
             unset($this->db_table_data[0]);
             unset($this->db_table_data_filtered[0]);
             
-//            $smarty->assign('default_img', \k1app\K1APP_ASSETS_IMAGES_URL . 'default-person.jpg');
             $smarty->assign('uploads_url', K1APP_UPLOADS_URL);
             $smarty->assign('assets_img_url', K1APP_ASSETS_IMAGES_URL);
             $smarty->assign('tc', $this->db_table->get_db_table_config());
@@ -178,12 +201,20 @@ class listing extends base_with_data implements base_interface {
     }
 
     /**
-     * @return table_from_data
+     * Gets the HTML table object.
+     *
+     * @return table_from_data|null The table object or NULL if not set.
      */
     public function get_html_table(): table_from_data|null {
         return $this->html_table;
     }
 
+    /**
+     * Applies ordering based on URL parameters for a specific field.
+     * Called internally before data loading.
+     *
+     * @return void
+     */
     public function apply_orderby_headers(): void {
         $table_alias = db_table_aliases::encode($this->db_table->get_db_table_name());
 
@@ -203,6 +234,11 @@ class listing extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Applies clickable sorting links to table headers.
+     *
+     * @return void
+     */
     public function do_orderby_headers(): void {
         $this->set_do_table_field_name_encrypt();
 
@@ -235,8 +271,10 @@ class listing extends base_with_data implements base_interface {
     }
 
     /**
-     * 
-     * @return div
+     * Generates statistics message showing row count information.
+     *
+     * @param string $custom_msg Custom message to use instead of default.
+     * @return p Paragraph element with statistics text.
      */
     public function do_row_stats($custom_msg = ""): p {
         $div_stats = new p(NULL, "k1lib-crudlexs-list-stats mt-3");
@@ -258,8 +296,9 @@ class listing extends base_with_data implements base_interface {
     }
 
     /**
-     * 
-     * @return div
+     * Generates pagination navigation controls.
+     *
+     * @return nav Navigation element with pagination links.
      */
     public function do_pagination(): nav {
 
@@ -294,28 +333,22 @@ class listing extends base_with_data implements base_interface {
             } else {
                 $this->page_last = "#";
             }
-            /**
-             * HTML UL- LI construction
-             */
+
             $ul = (new ul("pagination pagination-primary pagination-sm k1lib-crudlexs justify-content-center" . $this->get_object_id()));
             $ul->append_to($div_scroller);
 
-            // First page LI
             $li = $ul->append_li(null, 'page-item');
-//    function append_a($href = NULL, $label = NULL, $target = NULL, $alt = NULL, $class = NULL, $id = NULL) {
             $a = $li->append_a($this->page_first, "‹‹", "_self", "page-link k1lib-crudlexs-first-page");
             if ($this->page_first == "#") {
                 $a->set_attrib("class", "disabled", true);
             }
-            // Previuos page LI
+
             $li = $ul->append_li(NULL, 'page-item');
             $a = $li->append_a($this->page_previous, "‹", "_self", "page-link k1lib-crudlexs-previous-page");
             if ($this->page_previous == "#") {
                 $a->set_attrib("class", "disabled", true);
             }
-            /**
-             * Page GOTO selector
-             */
+
             $page_selector = new select("goto_page", "form-select form-select-sm k1lib-crudlexs-page-goto", $this->get_object_id() . "-page-goto");
             $page_selector->set_attrib("onChange", "use_select_option_to_url_go(this)");
             for ($i = 1; $i <= $this->total_pages; $i++) {
@@ -323,13 +356,13 @@ class listing extends base_with_data implements base_interface {
                 $option = $page_selector->append_option($option_url, $i, (($this->actual_page == $i) ? TRUE : FALSE));
             }
             $ul->append_li(NULL, 'page-item')->append_child($page_selector);
-            // Next page LI
+
             $li = $ul->append_li(NULL, 'page-item');
             $a = $li->append_a($this->page_next, "›", "_self", "page-link k1lib-crudlexs-next-page");
             if ($this->page_next == "#") {
                 $a->set_attrib("class", "disabled", true);
             }
-            // Last page LI
+
             $li = $ul->append_li(NULL, 'page-item');
             $a = $li->append_a($this->page_last, "››", "_self", "page-link k1lib-crudlexs-last-page");
             if ($this->page_last == "#") {
@@ -339,6 +372,11 @@ class listing extends base_with_data implements base_interface {
         return $nav_pagination;
     }
 
+    /**
+     * Generates rows-per-page selector control.
+     *
+     * @return div Container with rows-per-page selector.
+     */
     public function do_show_rows_per_page(): div {
         $num_rows_input_gorup = new div('input-group mb-3');
         if (($this->db_table_data) && (self::$rows_per_page <= $this->total_rows)) {
@@ -347,9 +385,6 @@ class listing extends base_with_data implements base_interface {
             $page_get_var_name = $this->get_object_id() . "-page";
             $rows_get_var_name = $this->get_object_id() . "-rows";
 
-            /**
-             * PAGE ROWS selector
-             */
             $num_rows_input_gorup->append_label('Show', 'goto_page', 'input-group-text');
             $num_rows_selector = new select("goto_page", "form-select col-2 k1lib-crudlexs-page-goto", $this->get_object_id() . "-page-rows-goto");
             $num_rows_selector->set_attrib("onChange", "use_select_option_to_url_go(this)");
@@ -370,40 +405,71 @@ class listing extends base_with_data implements base_interface {
         return $num_rows_input_gorup;
     }
 
+    /**
+     * Sets the statistics message template.
+     *
+     * @param string $stat_msg The message template with placeholders.
+     * @return void
+     */
     function set_stat_msg($stat_msg): void {
         $this->stat_msg = $stat_msg;
     }
 
+    /**
+     * Gets the current page number.
+     *
+     * @return int The current page.
+     */
     function get_actual_page(): int {
         return $this->actual_page;
     }
 
+    /**
+     * Sets the current page number.
+     *
+     * @param int $actual_page The page number to set.
+     * @return void
+     */
     function set_actual_page($actual_page): void {
         $this->actual_page = $actual_page;
     }
 
+    /**
+     * Gets rows per page setting.
+     *
+     * @return int Rows per page value.
+     */
     function get_rows_per_page() {
         return self::$rows_per_page;
     }
 
+    /**
+     * Sets rows per page setting.
+     *
+     * @param int $rows_per_page Number of rows per page.
+     * @return void
+     */
     function set_rows_per_page($rows_per_page): void {
         self::$rows_per_page = $rows_per_page;
     }
 
+    /**
+     * Loads database table data with pagination and sorting.
+     * Calculates total rows, pages, and applies SQL limits.
+     *
+     * @param mixed $show_rule Optional show rule filter.
+     * @return bool TRUE if data loaded successfully, FALSE otherwise.
+     */
     public function load_db_table_data($show_rule = null): bool {
-        // FIRST of all, get TABLE total rows
         $this->total_rows = $this->db_table->get_total_rows();
 
-        // THEN get from GET vars if there is a row per page value
         if (isset($_GET[$this->object_id . "-rows"])) {
             $possible_rows_to_set = $_GET[$this->object_id . "-rows"];
             if ($possible_rows_to_set <= $this->total_rows) {
                 self::$rows_per_page = $possible_rows_to_set;
-            } else {
-                // DO NOTHING
             }
         }
-        // now we can know the total pages 
+
         if (!is_numeric(self::$rows_per_page)) {
             self::$rows_per_page = 0;
             $this->total_pages = 1;
@@ -411,13 +477,10 @@ class listing extends base_with_data implements base_interface {
             $this->total_pages = ceil($this->total_rows / self::$rows_per_page);
         }
 
-        // The rows per page have to have a value, if is not set then we have to set it as the total rows
         if (self::$rows_per_page == 0) {
             self::$rows_per_page = $this->total_rows;
         }
-        /**
-         * Catch the GET value for pagination
-         */
+
         if (isset($_GET[$this->object_id . "-page"])) {
             $possible_page_to_set = $_GET[$this->object_id . "-page"];
             if (($possible_page_to_set >= 1) && ($possible_page_to_set <= $this->total_pages)) {
@@ -426,7 +489,7 @@ class listing extends base_with_data implements base_interface {
                 $this->actual_page = 1;
             }
         }
-        // SQL Limit time !
+
         if (self::$rows_per_page !== 0) {
             $offset = ($this->actual_page - 1) * self::$rows_per_page;
             $this->db_table->set_query_limit($offset, self::$rows_per_page);
@@ -435,7 +498,6 @@ class listing extends base_with_data implements base_interface {
             $this->apply_orderby_headers();
         }
 
-        // GET DATA with a SQL Query
         if (parent::load_db_table_data($show_rule)) {
             $this->total_rows_filter = $this->db_table->get_total_data_rows();
             $this->first_row_number = $this->db_table->get_query_offset() + 1;
@@ -448,33 +510,65 @@ class listing extends base_with_data implements base_interface {
         }
     }
 
+    /**
+     * Gets the first page URL.
+     *
+     * @return int The URL or FALSE if not set.
+     */
     function get_page_first(): int {
         return $this->page_first;
     }
 
+    /**
+     * Gets the previous page URL.
+     *
+     * @return int The URL or FALSE if not set.
+     */
     function get_page_previous(): int {
         return $this->page_previous;
     }
 
+    /**
+     * Gets the next page URL.
+     *
+     * @return int The URL or FALSE if not set.
+     */
     function get_page_next(): int {
         return $this->page_next;
     }
 
+    /**
+     * Gets the last page URL.
+     *
+     * @return int The URL or FALSE if not set.
+     */
     function get_page_last(): int {
         return $this->page_last;
     }
 
+    /**
+     * Gets the header sorting setting.
+     *
+     * @return bool TRUE if sorting is enabled.
+     */
     public function get_do_orderby_headers(): bool {
         return $this->do_orderby_headers;
     }
 
+    /**
+     * Sets the header sorting setting.
+     *
+     * @param bool $do_orderby_headers Whether to enable header sorting.
+     * @return void
+     */
     public function set_do_orderby_headers($do_orderby_headers): void {
         $this->do_orderby_headers = $do_orderby_headers;
     }
 
     /**
-     * Set the Smarty template PATH to use with each data row
-     * @param string $data_row_template
+     * Sets the Smarty template for custom row rendering.
+     *
+     * @param string $data_row_template Path to the Smarty template file.
      * @return void
      */
     public function set_data_row_template(string $data_row_template): void {

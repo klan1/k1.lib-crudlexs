@@ -4,41 +4,66 @@ namespace k1lib\crudlexs\object;
 
 use k1lib\common_strings;
 
+/**
+ * Helper class for rendering read-only field values.
+ * Provides static methods for formatting different field types for display.
+ */
 class read_helper
 {
-
-    //    static $do_fk_search_tool = TRUE;
-    //    static $url_to_search_fk_data = \k1app\K1APP_URL . "general-utils/select-row-keys/";
-    //    static $url_to_send_row_keys_fk_data = \k1app\K1APP_URL . "general-utils/send-row-keys/";
-    //    static $main_css = "";
-    //    static private $fk_fields_to_skip = [];
-    //    static public $boolean_true = NULL;
-    //    static public $boolean_false = NULL;
-
+    /**
+     * Formats a password field value for display.
+     * Returns the value as-is (passwords are typically masked elsewhere).
+     *
+     * @param mixed $value The password value.
+     * @return mixed The formatted value.
+     */
     static function password_type($value)
     {
         return $value;
     }
 
+    /**
+     * Formats an enum field value for display.
+     *
+     * @param mixed $value The enum value.
+     * @return mixed The formatted value.
+     */
     static function enum_type($value)
     {
         return $value;
     }
 
+    /**
+     * Formats a text field value for display.
+     *
+     * @param mixed $value The text value.
+     * @return mixed The formatted value.
+     */
     static function text_type($value)
     {
         return $value;
     }
 
+    /**
+     * Formats a file upload field value for display.
+     *
+     * @param mixed $value The file upload value.
+     * @return mixed The formatted value.
+     */
     static function file_upload($value)
     {
         return $value;
     }
 
+    /**
+     * Formats a boolean field value for display.
+     * Converts internal boolean representation to localized Yes/No text.
+     *
+     * @param mixed $value The boolean value.
+     * @return string Localized "Yes" or "No" string.
+     */
     static function boolean_type($value)
     {
-
-        // Row to apply is constant coz this is CREATE or EDIT and there is allways just 1 set of data to manipulate.
         $t = \k1lib\lang\translator::getInstance();
         if (self::$boolean_true === NULL) {
             self::$boolean_true = $t->t('k1lib', '', 'Yes');
@@ -49,6 +74,12 @@ class read_helper
         return $value;
     }
 
+    /**
+     * Formats a default field value for display.
+     *
+     * @param mixed $value The field value.
+     * @return mixed The formatted value.
+     */
     static function default_type($value)
     {
         return $value;

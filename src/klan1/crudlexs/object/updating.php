@@ -11,12 +11,36 @@ use function k1lib\forms\check_all_incomming_vars;
 use function k1lib\html\html_header_go;
 use function k1lib\urlrewrite\get_back_url;
 
+/**
+ * Updating object for handling existing record updates.
+ * Extends creating functionality with update-specific operations.
+ */
 class updating extends creating {
 
+    /**
+     * Flag indicating if update operation was performed.
+     * @var bool
+     */
     protected $update_perfomed = FALSE;
+
+    /**
+     * Flag indicating if redirect should happen after update.
+     * @var bool
+     */
     protected $do_redirect = FALSE;
+
+    /**
+     * Flag indicating if record was successfully updated.
+     * @var mixed
+     */
     protected $updated = NULL;
 
+    /**
+     * Constructs an updating object for editing existing records.
+     *
+     * @param db_table $db_table The database table object.
+     * @param string $row_keys_text URL-encoded row keys identifying the record.
+     */
     public function __construct(db_table $db_table, $row_keys_text) {
         if (!empty($row_keys_text)) {
             parent::__construct($db_table, $row_keys_text);
@@ -30,6 +54,13 @@ class updating extends creating {
         $this->object_state = "update";
     }
 
+    /**
+     * Loads database table data with special handling for file unlinking.
+     * Handles URL action for unlinking uploaded files before loading data.
+     *
+     * @param bool $blank_data Not used for updating.
+     * @return mixed Result from parent load method.
+     */
     public function load_db_table_data($blank_data = FALSE) {
         $return_data = parent::load_db_table_data($blank_data);
 
@@ -51,8 +82,12 @@ class updating extends creating {
         return $return_data;
     }
 
+    /**
+     * Performs the database update operation with validated POST data.
+     *
+     * @return bool TRUE on success, FALSE on error.
+     */
     public function do_update() {
-        //$this->set_back_url("javascript:history.back()");
         $error_data = NULL;
 
         $this->div_container->set_attrib("class", "k1lib-crudlexs-update");
@@ -80,18 +115,20 @@ class updating extends creating {
             DOM_notification::queue_mesasage(updating_strings::$data_not_updated, "warning", $this->notifications_div_id);
             if (!empty($error_data)) {
                 DOM_notification::queue_mesasage(print_r($error_data, TRUE), 'alert', $this->notifications_div_id);
-            } else {
-//                DOM_notification::queue_mesasage(print_r($this->post_incoming_array, TRUE), 'alert', $this->notifications_div_id);
             }
             return FALSE;
         }
     }
 
+    /**
+     * Redirects to specified URL after successful update.
+     *
+     * @param string $url_to_go The URL to redirect to. Supports --rowkeys-- and --authcode-- placeholders.
+     * @param bool $do_redirect If TRUE, performs header redirect; if FALSE, returns URL.
+     * @return string|void Returns URL string if redirect is disabled, void otherwise.
+     */
     public function post_update_redirect($url_to_go = "../../", $do_redirect = TRUE) {
         if ($this->update_perfomed || $this->do_redirect) {
-            /**
-             * Merge the ROW KEYS with all the possible keys on the POST array
-             */
             $merged_key_array = array_merge(
                     $this->db_table_data_keys[1]
                     , $this->db_table->db->get_keys_array_from_row_data(

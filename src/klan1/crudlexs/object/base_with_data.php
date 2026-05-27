@@ -17,69 +17,122 @@ use function k1lib\urlrewrite\get_back_url;
 use function k1lib\utils\decimal_to_n36;
 use function k1lib\utils\n36_to_decimal;
 
+/**
+ * Base class for CRUD objects that work with database table data.
+ * Extends base with data loading, filtering, authentication, and field encryption capabilities.
+ */
 class base_with_data extends base {
 
     /**
-     *
-     * @var array 
+     * Array containing table data where index 0 has field names and indices 1+ have row data.
+     * Structure: [0 => [field => label], 1 => [field => value], 2 => [...], ...]
+     * @var array
      */
     public $db_table_data = [];
 
     /**
-     *
-     * @var bool 
+     * Keys extracted from the database table data for authentication and linking.
+     * @var bool|array
      */
     protected $db_table_data_keys = FALSE;
-    // FILTERS
 
     /**
-     *
-     * @var array 
+     * Filtered version of table data after applying field/labels filters.
+     * @var bool|array
      */
     public $db_table_data_filtered = FALSE;
 
     /**
-     *
+     * Authentication code for the current data set.
      * @var string
      */
     protected $auth_code = null;
+
+    /**
+     * Personal authentication code tied to user session.
+     * @var string
+     */
     protected $auth_code_personal = null;
+
+    /**
+     * Flag indicating if link filter has been applied to fields.
+     * @var bool
+     */
     protected $link_on_field_filter_applied = false;
+
+    /**
+     * URL to redirect back to after an action.
+     * @var mixed
+     */
     protected $back_url;
+
+    /**
+     * URL for cancel action.
+     * @var mixed
+     */
     protected $cancel_url;
+
+    /**
+     * URL-encoded text representation of row keys.
+     * @var string
+     */
     protected $row_keys_text = null;
+
+    /**
+     * Array representation of row keys.
+     * @var array
+     */
     protected $row_keys_array = null;
 
     /**
-     *
-     * @var bool 
+     * When TRUE, skips automatic verification of authentication codes.
+     * @var bool
      */
     protected $skip_auto_code_verification = FALSE;
 
     /**
-     *
-     * @var bool 
+     * When TRUE, blank values are excluded from filters.
+     * @var bool
      */
     protected $skip_blanks_on_filters = FALSE;
 
     /**
-     *
+     * When TRUE, field names are encrypted for security.
      * @var bool
      */
     protected $do_table_field_name_encrypt = TRUE;
 
     /**
-     * If TRUE all file uploads will be represented as links, if OFF images will be images. PDF and others by now allways will be links.
+     * When TRUE, file uploads display as links instead of images.
      * @var bool
      */
     protected $force_file_uploads_as_links = TRUE;
+
+    /**
+     * Custom labels for specific fields.
+     * @var array
+     */
     protected $custom_field_labels = [];
+
+    /**
+     * Fields to hide from display.
+     * @var array
+     */
     protected $fields_to_hide = [];
+
+    /**
+     * Object validity state.
+     * @var bool
+     */
     protected $is_valid = FALSE;
 
     /**
-     * Always to create the object you must have a valid DB Table object already 
-     * @param db_table $db_table DB Table object
+     * Constructs a base_with_data object with database table and optional row keys.
+     * Requires a valid DB Table object for proper initialization.
+     *
+     * @param db_table $db_table Database table object.
+     * @param mixed $row_keys_text Optional row keys text for loading specific record.
+     * @param mixed $custom_auth_code Optional custom authentication code.
      */
     public function __construct(db_table $db_table, $row_keys_text = null, $custom_auth_code = null) {
         $this->back_url = get_back_url();
@@ -121,33 +174,66 @@ class base_with_data extends base {
         $this->set_css_class(get_class($this));
     }
 
+    /**
+     * Gets the authentication code.
+     *
+     * @return string The auth code.
+     */
     public function get_auth_code() {
         return $this->auth_code;
     }
 
+    /**
+     * Sets the authentication code based on row keys text.
+     *
+     * @param string $row_keys_text The row keys text.
+     */
     public function set_auth_code($row_keys_text) {
         $this->auth_code = md5(K1MAGIC::get_value() . $row_keys_text);
     }
 
+    /**
+     * Gets the personal authentication code.
+     *
+     * @return string The personal auth code.
+     */
     public function get_auth_code_personal() {
         return $this->auth_code_personal;
     }
 
+    /**
+     * Sets the personal authentication code based on row keys text and user hash.
+     *
+     * @param string $row_keys_text The row keys text.
+     */
     public function set_auth_code_personal($row_keys_text) {
         $this->auth_code_personal = md5(app_session::get_user_hash() . $row_keys_text);
     }
 
+    /**
+     * Gets the table field name encryption setting.
+     *
+     * @return bool TRUE if encryption is enabled.
+     */
     public function get_do_table_field_name_encrypt() {
         return $this->do_table_field_name_encrypt;
     }
 
+    /**
+     * Sets the table field name encryption flag.
+     *
+     * @param bool $do_table_field_name_encryp Whether to encrypt field names.
+     */
     public function set_do_table_field_name_encrypt($do_table_field_name_encryp = TRUE) {
         $this->do_table_field_name_encrypt = $do_table_field_name_encryp;
     }
 
     /**
-     * 
-     * @return Array Data with data[0] as table fields and data[1..n] for data rows. FALSE on no data.
+     * Loads database table data based on current query filters.
+     * Data format: [0 => [field => label], 1 => [field => value], ...]
+     *
+     * @param mixed $show_rule Optional show rule filter.
+     * @return bool TRUE on success, FALSE otherwise.
      */
     public function load_db_table_data($show_rule = null) {
         if ($this->is_valid()) {
@@ -167,6 +253,13 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Simulates database data from a provided array for testing or temporary display.
+     * Array must have compatible structure with standard table data format.
+     *
+     * @param array $data_array The data array to simulate.
+     * @return bool TRUE if successful, FALSE otherwise.
+     */
     public function simulate_db_data_with_array(array $data_array) {
         if (array_key_exists(0, $data_array)) {
             $headers_count = count($data_array[0]);
@@ -187,6 +280,12 @@ class base_with_data extends base {
         return FALSE;
     }
 
+    /**
+     * Simulates database keys from a provided array.
+     *
+     * @param array $data_array The keys array to simulate.
+     * @return bool TRUE if successful, FALSE otherwise.
+     */
     public function simulate_db_data_keys_with_array(array $data_array) {
         if (array_key_exists(0, $data_array)) {
             $headers_count = count($data_array[0]);
@@ -206,9 +305,13 @@ class base_with_data extends base {
         return FALSE;
     }
 
+    /**
+     * Applies label filter to convert field names to configured labels.
+     *
+     * @return bool TRUE if filter was applied, FALSE otherwise.
+     */
     public function apply_label_filter() {
         if (empty($this->db_table_data) || !is_array($this->db_table_data)) {
-            //            trigger_error(__METHOD__ . " - Can't work with an empty result", E_USER_WARNING);
             return FALSE;
         } else {
             $db_table_config = $this->db_table->get_db_table_config();
@@ -231,6 +334,12 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Applies field label filter to replace foreign key values with their display labels.
+     *
+     * @param array $apply_to Fields to apply filter to. Empty array means all fields.
+     * @return bool TRUE if filter was applied, FALSE otherwise.
+     */
     public function apply_field_label_filter(array $apply_to = []) {
         if ($this->get_state()) {
             if (empty($this->db_table_data) || !is_array($this->db_table_data)) {
@@ -252,13 +361,8 @@ class base_with_data extends base {
                                 $refereced_column_config = $refereced_column_config['refereced_column_config'];
                             }
                             $fk_table = $refereced_column_config['table'];
-                            //                            $fk_table_field = $refereced_column_config['field'];
-                            //                            $fk_db_table = new db_table($this->db_table->db, $fk_table);
-                            //                            $fk_label_field = $fk_db_table->$this->db_table->get_db_table_label_fields();
                             $fk_label_field = $this->db_table->db->get_fk_field_label($fk_table, [$field => $value], $table_config_array, $refereced_column_config['key']);
-                            //                            $this->db_table_data_filtered[$index][$field] = $fk_label_field;
                             if (!empty($fk_label_field)) {
-                                //                                d($this->db_table_data_filtered[$index][$field], TRUE);
                                 if (is_object($this->db_table_data_filtered[$index][$field])) {
                                     $this->db_table_data_filtered[$index][$field]->set_value($fk_label_field);
                                 } else {
@@ -276,6 +380,11 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Applies file upload filter to convert file references to appropriate HTML elements.
+     *
+     * @return bool TRUE if filter was applied, FALSE otherwise.
+     */
     public function apply_file_uploads_filter() {
         if ($this->get_state()) {
             if (empty($this->db_table_data) || !is_array($this->db_table_data)) {
@@ -294,8 +403,6 @@ class base_with_data extends base {
                     foreach ($file_upload_fields as $field => $file_type) {
                         switch (substr($file_type, 0, 5)) {
                             case "image":
-                                //                                $div_container = new \k1lib\html\div();
-
                                 $img_tag = new img(file_uploads::get_uploads_url($options['table']) . "--fieldvalue--");
                                 $img_tag->set_attrib("onClick", "window.open(this.getAttribute('src'),'imgWindow', 'height=1024,width=768,toolbar=0,location=0,menubar=0');", TRUE);
                                 $img_tag->set_attrib("class", "k1lib-data-img", TRUE);
@@ -315,6 +422,15 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Applies a link filter to specified fields, creating clickable URLs.
+     *
+     * @param string $link_to_apply URL pattern with placeholders like --rowkeys--, --fieldvalue--.
+     * @param mixed $fields_to_change Fields to apply link to (array, USE_KEY_FIELDS, USE_ALL_FIELDS, etc.).
+     * @param mixed $custom_field_to_use_value Custom field value to include in URL.
+     * @param string $href_target Link target attribute.
+     * @return bool TRUE if filter was applied, FALSE otherwise.
+     */
     public function apply_link_on_field_filter($link_to_apply, $fields_to_change = null, $custom_field_to_use_value = null, $href_target = null) {
         if ($this->get_state()) {
             $this->link_on_field_filter_applied = true;
@@ -329,10 +445,18 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Applies an HTML tag to filtered data fields with placeholder replacement.
+     * Supports placeholders: --rowkeys--, --fieldvalue--, --authcode--, --customfieldvalue--, --fieldauthcode--
+     *
+     * @param tag $tag_object The HTML tag object to apply.
+     * @param mixed $fields_to_change Fields to modify (array, USE_KEY_FIELDS, USE_ALL_FIELDS, USE_LABEL_FIELDS).
+     * @param mixed $custom_field_to_use_value Custom field value to use in URL.
+     * @return bool TRUE if applied, FALSE otherwise.
+     */
     public function apply_html_tag_on_field_filter(tag $tag_object, $fields_to_change = base::USE_KEY_FIELDS, $custom_field_to_use_value = null) {
         if ($this->get_state()) {
             if (empty($this->db_table_data) || !is_array($this->db_table_data)) {
-                //                trigger_error(__METHOD__ . " " . object_base_strings::$error_no_table_data, E_USER_NOTICE);
                 return FALSE;
             } else {
                 if ($fields_to_change === base::USE_KEY_FIELDS) {
@@ -362,12 +486,10 @@ class base_with_data extends base {
                                 trigger_error(__METHOD__ . "The field to change ($field_to_change) do no exist ", E_USER_NOTICE);
                                 continue;
                             } else {
-                                // Let's clone the $tag_object to reuse it properly
                                 $tag_object_original = clone $tag_object;
 
                                 $custom_field_to_use_value_original = $custom_field_to_use_value;
 
-                                // EMPTY fields fix: 0 will be take in count
                                 if ($this->skip_blanks_on_filters && ($row_data[$field_to_change] === NULL || $row_data[$field_to_change] === '')) {
                                     continue;
                                 }
@@ -384,14 +506,11 @@ class base_with_data extends base {
                                         $tag_href = $tag_object->get_attribute("src");
                                         $tag_value = $tag_object->get_attribute("alt");
                                     } else {
-                                        // Let's try to get an A object from this object searching for it
                                         $a_tags = $tag_object->get_elements_by_tag("a");
                                         if (count($a_tags) === 1) {
                                             $tag_href = $a_tags[0]->get_attribute("href");
                                             $tag_value = $a_tags[0]->get_value();
                                         } else {
-                                            // TODO: CHECK THIS! - WTF line
-                                            //                                    $tag_href = $tag_object->get_value();
                                             $tag_href = NULL;
                                         }
                                     }
@@ -417,12 +536,8 @@ class base_with_data extends base {
                                         $key_array_text = $this->db_table->db->table_keys_to_text($this->db_table_data_keys[$index], $this->db_table->get_db_table_config());
                                         $auth_code = md5(K1MAGIC::get_value() . $key_array_text);
 
-                                        /**
-                                         * HREF STR_REPLACE
-                                         */
                                         $tag_href = str_replace("--rowkeys--", urlencode($key_array_text), $tag_href);
-                                        $tag_href = str_replace("--fieldvalue--", rawurlencode($row_data[$field_to_change]), $tag_href); // rawurlencode for images loads correctly
-                                        // TODO: Why did I needed this ? WFT Line
+                                        $tag_href = str_replace("--fieldvalue--", rawurlencode($row_data[$field_to_change]), $tag_href);
                                         if (!empty($custom_field_to_use_value)) {
                                             $actual_custom_field_value = str_replace("--fieldvalue--", urlencode($row_data[$field_to_change]), $custom_field_to_use_value);
                                             $tag_href = str_replace("--customfieldvalue--", urlencode($actual_custom_field_value), $tag_href);
@@ -431,9 +546,7 @@ class base_with_data extends base {
                                             $actual_custom_field_value = null;
                                         }
                                         $tag_href = str_replace("--authcode--", $auth_code, $tag_href);
-                                        /**
-                                         * VALUE STR_REPLACE
-                                         */
+
                                         if (!empty($tag_value)) {
                                             $tag_value = str_replace("--rowkeys--", $key_array_text, $tag_value);
                                             $tag_value = str_replace("--fieldvalue--", urlencode($row_data[$field_to_change]), $tag_value);
@@ -449,9 +562,8 @@ class base_with_data extends base {
                                         }
                                         if (get_class($tag_object) == "k1lib\html\img") {
                                             $tag_object->set_attrib("src", $tag_href);
-                                            $tag_object->set_style("max-height:150px; max-width:150px"); // inline styles, yes
+                                            $tag_object->set_style("max-height:150px; max-width:150px");
                                         }
-                                        // get-elements-by-tags fix
                                         foreach ($a_tags as $a_tag) {
                                             $a_tag->set_attrib("href", $tag_href);
                                             $a_tag->set_value($tag_value);
@@ -461,10 +573,7 @@ class base_with_data extends base {
                                     trigger_error("Not a HTML_TAG Object", E_USER_WARNING);
                                 }
                                 $this->db_table_data_filtered[$index][$field_to_change] = $tag_object;
-                                //                                d($this->db_table_data_filtered);
-                                // Clean it... $tag_object 
                                 unset($tag_object);
-                                // Let's clone the original to re use it
                                 $tag_object = clone $tag_object_original;
                                 $custom_field_to_use_value = $custom_field_to_use_value_original;
                             }
@@ -478,18 +587,38 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Checks if link filter has been applied.
+     *
+     * @return bool TRUE if applied, FALSE otherwise.
+     */
     public function get_link_on_field_filter_applied() {
         return $this->link_on_field_filter_applied;
     }
 
+    /**
+     * Gets the back URL.
+     *
+     * @return string The back URL.
+     */
     public function get_back_url() {
         return $this->back_url;
     }
 
+    /**
+     * Sets the back URL.
+     *
+     * @param string $back_url The URL to set.
+     */
     public function set_back_url($back_url) {
         $this->back_url = $back_url;
     }
 
+    /**
+     * Gets row keys text if available.
+     *
+     * @return string|false Row keys text or FALSE if not set.
+     */
     function get_row_keys_text() {
         if (!empty($this->row_keys_text)) {
             return $this->row_keys_text;
@@ -498,6 +627,11 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Gets row keys array if available.
+     *
+     * @return array|false Row keys array or FALSE if not set.
+     */
     function get_row_keys_array() {
         if (!empty($this->row_keys_array)) {
             return $this->row_keys_array;
@@ -506,8 +640,13 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Encrypts a field name based on its position and session random value.
+     *
+     * @param string $field_name The field name to encrypt.
+     * @return string The encrypted field name or alias if configured.
+     */
     public function encrypt_field_name($field_name) {
-        // first, we need to know in what position is the field on the table design.
         if (isset($_SESSION['CRUDLEXS-RND']) && !empty($_SESSION['CRUDLEXS-RND'])) {
             $rnd = $_SESSION['CRUDLEXS-RND'];
         } else {
@@ -526,7 +665,6 @@ class base_with_data extends base {
                     }
                     $field_pos++;
                 }
-//                $new_field_name = "k1_" . decimal_to_n36($field_pos);
                 $new_field_name = "k1_" . decimal_to_n36($field_pos + $rnd);
                 return $new_field_name;
             } else {
@@ -537,6 +675,12 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Encrypts all field names in a data array.
+     *
+     * @param array $data_array The data array with field names as keys.
+     * @return array The array with encrypted field names.
+     */
     public function encrypt_field_names($data_array) {
         $encoded_data_array = [];
         foreach ($data_array as $field => $value) {
@@ -545,6 +689,12 @@ class base_with_data extends base {
         return $encoded_data_array;
     }
 
+    /**
+     * Decrypts an encrypted field name back to original.
+     *
+     * @param string $encrypted_name The encrypted field name.
+     * @return string The original field name.
+     */
     public function decrypt_field_name($encrypted_name) {
         if (strstr($encrypted_name, "k1_") !== FALSE) {
             list($prefix, $n36_number) = explode("_", $encrypted_name);
@@ -557,7 +707,6 @@ class base_with_data extends base {
             }
             $field_position = n36_to_decimal($n36_number) - $rnd;
             $fields_from_table_config = array_keys($this->db_table->get_db_table_config());
-            //            $field_position = \k1lib\utils\n36_to_decimal($n36_number);
             return $fields_from_table_config[$field_position];
         } else {
             foreach ($this->db_table->get_db_table_config() as $field => $config) {
@@ -569,6 +718,12 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Decrypts all field names in a data array.
+     *
+     * @param array $data_array The data array with encrypted field names.
+     * @return array The array with original field names.
+     */
     public function decrypt_field_names($data_array) {
         $decoded_data_array = [];
         foreach ($data_array as $field => $value) {
@@ -577,6 +732,12 @@ class base_with_data extends base {
         return $decoded_data_array;
     }
 
+    /**
+     * Gets label field value from a specific row.
+     *
+     * @param int $row The row index to get label from.
+     * @return string|null The label value or NULL if not found.
+     */
     public function get_labels_from_data($row = 1) {
         if ($this->db_table_data) {
             $data_label = $this->db_table->db->get_db_table_label_fields_from_row($this->db_table_data_filtered[$row], $this->db_table->get_db_table_config());
@@ -590,6 +751,11 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Removes label fields from filtered data.
+     *
+     * @param int $row The row index to remove labels from.
+     */
     public function remove_labels_from_data_filtered($row = 1) {
         if ($this->db_table_data) {
             $label_fields_array = $this->db_table->get_db_table_label_fields($this->db_table->get_db_table_config());
@@ -599,41 +765,64 @@ class base_with_data extends base {
         }
     }
 
+    /**
+     * Gets the raw table data.
+     *
+     * @return array The table data array.
+     */
     public function get_db_table_data() {
         return $this->db_table_data;
     }
 
+    /**
+     * Gets the table data keys.
+     *
+     * @return array|bool The keys array or FALSE if not set.
+     */
     public function get_db_table_data_keys() {
         return $this->db_table_data_keys;
     }
 
+    /**
+     * Gets the filtered table data.
+     *
+     * @return array|bool The filtered data array or FALSE if not set.
+     */
     public function get_db_table_data_filtered() {
         return $this->db_table_data_filtered;
     }
 
     /**
-     * @return array
+     * Gets custom field labels configuration.
+     *
+     * @return array Custom field labels array.
      */
     function get_custom_field_labels() {
         return $this->custom_field_labels;
     }
 
     /**
-     * @param array $custom_field_labels
+     * Sets custom field labels configuration.
+     *
+     * @param array $custom_field_labels The labels to set.
      */
     function set_custom_field_labels(array $custom_field_labels) {
         $this->custom_field_labels = $custom_field_labels;
     }
 
     /**
-     * @return array
+     * Gets fields to hide configuration.
+     *
+     * @return array Fields to hide array.
      */
     public function get_fields_to_hide() {
         return $this->fields_to_hide;
     }
 
     /**
-     * @param array $fields_to_hide
+     * Sets fields to hide configuration.
+     *
+     * @param array $fields_to_hide The fields to hide.
      */
     public function set_fields_to_hide(array $fields_to_hide) {
         $this->fields_to_hide = $fields_to_hide;

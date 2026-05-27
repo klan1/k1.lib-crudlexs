@@ -24,19 +24,70 @@ use const k1lib\K1LIB_BASE_PATH;
 use function d;
 use function k1lib\urlrewrite\get_back_url;
 
+/**
+ * Helper class for generating HTML input elements based on field configurations.
+ * Provides static methods for creating inputs for various field types including
+ * enums, text, files, passwords, booleans, and foreign key searches.
+ */
 class input_helper {
 
+    /**
+     * Whether to enable foreign key search tool.
+     * @var bool
+     */
     static $do_fk_search_tool = TRUE;
+
+    /**
+     * Whether the FK search tool JavaScript has been loaded.
+     * @var bool
+     */
     static $fk_search_tool_js_loaded = FALSE;
+
+    /**
+     * URL for searching foreign key data.
+     * @var string
+     */
     static $url_to_search_fk_data = K1APP_URL . "core/tools/select_row_keys/";
+
+    /**
+     * URL for sending selected row keys back.
+     * @var string
+     */
     static $url_to_send_row_keys_fk_data = K1APP_URL . "core/tools/send_row_keys/";
+
+    /**
+     * Main CSS file to include with editors.
+     * @var string
+     */
     static $main_css = "";
+
+    /**
+     * Foreign key fields to skip in search tool.
+     * @var array
+     */
     static private $fk_fields_to_skip = [];
+
+    /**
+     * True label for boolean fields.
+     * @var string
+     */
     static public $boolean_true = NULL;
+
+    /**
+     * False label for boolean fields.
+     * @var string
+     */
     static public $boolean_false = NULL;
 
+    /**
+     * Generates a password input group with current/new/confirm fields.
+     *
+     * @param creating $crudlex_obj The CRUD object instance.
+     * @param string $field The field name.
+     * @param string $case Either "create" or "update".
+     * @return div Container with password inputs.
+     */
     static function password_type(creating $crudlex_obj, $field, $case = "create") {
-        // First we have the CLEAR the password data, we do not need it!
         $field_encrypted = $crudlex_obj->encrypt_field_name($field) . "_password";
         $tag_id = $crudlex_obj->encrypt_field_name($field) . "-reveal";
         $crudlex_obj->db_table_data_filtered[1][$field] = null;
@@ -64,22 +115,19 @@ class input_helper {
     }
 
     /**
-     * *
-     * @param db_table $db_table
-     * @param array $db_table_row_data
-     * @return select
+     * Generates a select element for enum field types.
+     *
+     * @param creating $crudlex_obj The CRUD object instance.
+     * @param string $field The field name.
+     * @return select The select element with enum options.
      */
     static function enum_type(creating $crudlex_obj, $field) {
-        /**
-         * @todo Use FIELD encryption here, I tried but it doesn't work just pasting the normal lines
-         */
         $user_rol = app_session::get_user_level();
         $enum_data = $crudlex_obj->db_table->get_enum_options($field, $user_rol);
         $input_tag = new select($field);
         $input_tag->append_option("", input_helper_strings::$select_choose_option);
 
         foreach ($enum_data as $index => $value) {
-            // SELETED work around
             if ($crudlex_obj->db_table_data[1][$field] == $value) {
                 $selected = TRUE;
             } else {
@@ -91,14 +139,14 @@ class input_helper {
     }
 
     /**
-     * 
-     * @param \k1lib\crudlexs\creating $crudlex_obj
-     * @param int $row_to_apply
-     * @param string $field
-     * @return textarea
+     * Generates a textarea input, optionally with TinyMCE editor.
+     *
+     * @param creating $crudlex_obj The CRUD object instance.
+     * @param string $field The field name.
+     * @param bool $load_tinymce Whether to load TinyMCE editor.
+     * @return textarea The textarea element.
      */
     static function text_type(creating $crudlex_obj, $field, $load_tinymce = TRUE) {
-        // Row to apply is constant coz this is CREATE or EDIT and there is allways just 1 set of data to manipulate.
         $field_encrypted = $crudlex_obj->encrypt_field_name($field);
 
         if (!empty(self::$main_css)) {
@@ -118,16 +166,9 @@ class input_helper {
                     . "selector: '#$field_encrypted',"
                     . "height: 300,"
                     . "menubar: false,"
-//                    . "plugins: [ 
-//                    'advlist autolink lists link image charmap print preview anchor',
-//                    'searchreplace visualblocks code fullscreen',
-//                    'insertdatetime media table contextmenu paste code'
-//                ],"
                     . $css_option
                     . "body_class: 'html-editor',"
-//                . "content_style: 'div {margin: 100px; border: 50px solid red; padding: 3px}',"
                     . "toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',"
-//                    . "paste_data_images: true,"
                     . ""
                     . "});"
                     . "})";
@@ -138,6 +179,13 @@ class input_helper {
         return $input_tag;
     }
 
+    /**
+     * Generates a file upload input with optional delete link.
+     *
+     * @param creating $crudlex_obj The CRUD object instance.
+     * @param string $field The field name.
+     * @return div|input Container with file input or delete link.
+     */
     static function file_upload(creating $crudlex_obj, $field) {
         $field_encrypted = $crudlex_obj->encrypt_field_name($field);
 
@@ -155,24 +203,18 @@ class input_helper {
         }
     }
 
+    /**
+     * Generates radio button inputs for boolean fields.
+     *
+     * @param creating $crudlex_obj The CRUD object instance.
+     * @param string $field The field name.
+     * @return div Container with radio button pair.
+     */
     static function boolean_type(creating $crudlex_obj, $field) {
-        /*
-          <div class="switch tiny">
-          <input class="switch-input" id="tinySwitch" type="checkbox" name="exampleSwitch">
-          <label class="switch-paddle" for="tinySwitch">
-          <span class="show-for-sr">Tiny Sandwiches Enabled</span>
-          </label>
-          </div>
-         */
-        // Row to apply is constant coz this is CREATE or EDIT and there is allways just 1 set of data to manipulate.
-//        d(self::$boolean_true, true);
         if (self::$boolean_true === NULL) {
-//            d('yes');
             self::$boolean_true = common_strings::$yes;
         }
-//        d(self::$boolean_false, true);
         if (self::$boolean_false === NULL) {
-//            d('no');
             self::$boolean_false = common_strings::$no;
         }
 
@@ -202,16 +244,18 @@ class input_helper {
         return $input_div;
     }
 
+    /**
+     * Generates appropriate input based on field configuration.
+     * Handles FK searches, date pickers, and standard inputs.
+     *
+     * @param creating $crudlex_obj The CRUD object instance.
+     * @param string $field The field name.
+     * @return mixed The input element appropriate for the field type.
+     */
     static function default_type(creating $crudlex_obj, $field) {
         $field_encrypted = $crudlex_obj->encrypt_field_name($field);
         if ((!empty($crudlex_obj->db_table->get_field_config($field, 'refereced_table_name')) && self::$do_fk_search_tool) && (array_search($field, self::$fk_fields_to_skip) === FALSE)) {
-            /**
-             * FK TABLE EXTRACTOR
-             */
             $refereced_column_config = $crudlex_obj->db_table->get_field_config($field, 'refereced_column_config');
-//            while (!empty($refereced_column_config['refereced_column_config'])) {
-////                $refereced_column_config = $refereced_column_config['refereced_column_config'];
-//            }
             $this_table = $crudlex_obj->db_table->get_db_table_name();
             $this_table_alias = db_table_aliases::encode($this_table);
 
@@ -221,15 +265,12 @@ class input_helper {
             $fk_db_table = new db_table($crudlex_obj->db_table->db, $fk_table);
             $fk_db_table_config = $fk_db_table->get_db_table_config();
 
-//            $crudlex_obj->set_do_table_field_name_encrypt();
             $static_values = $crudlex_obj->db_table->get_constant_fields();
 
             $static_values_filtered = \k1lib\common\clean_array_with_guide($static_values, $fk_db_table_config);
 
             $static_values_enconded = $crudlex_obj->encrypt_field_names($static_values_filtered);
-            /**
-             * FK JS INPUT TOOL
-             */
+
             if (DOM::html()->body() && !self::$fk_search_tool_js_loaded) {
                 $js_file = K1LIB_BASE_PATH . '/static/js/crudlexs.js';
                 if (file_exists($js_file)) {
@@ -244,14 +285,8 @@ class input_helper {
                 }
             }
 
-            /**
-             * INPUT GROUP
-             */
             $div_input_group = new div("input-group");
 
-            /**
-             * INPUT TEXT
-             */
             $input_tag = new input("text", $field_encrypted, NULL, "k1lib-input-insert input-group-field form-control");
             if (!empty($crudlex_obj->db_table->get_field_config($field, 'placeholder'))) {
                 $input_tag->set_attrib("placeholder", $crudlex_obj->db_table->get_field_config($field, 'placeholder'));
@@ -260,12 +295,9 @@ class input_helper {
             }
             $input_tag->set_attrib("k1lib-data-group-" . $crudlex_obj->db_table->get_field_config($field, 'refereced_table_name'), TRUE);
             $input_tag->append_to($div_input_group);
-            /**
-             * FK SEARCH BUTTON
-             */
+
             $search_button = new button(null, "btn btn-outline-secondary fk-button");
             $search_button->append_i(null, 'bi bi-search');
-//            $search_button->set_attrib("style", "font-family:foundation-icons");
 
             $url_params = array_merge(
                     [
@@ -291,9 +323,6 @@ class input_helper {
             $div_input_group->link_value_obj($input_tag);
             return $div_input_group;
         } elseif (strstr("date,date-past,date-future", $crudlex_obj->db_table->get_field_config($field, 'validation')) !== FALSE) {
-            /**
-             * DATE TIME CALENDAR TOOL
-             */
             DOM::html()->head()->link_css(TPL_URL . "assets/extensions/flatpickr/flatpickr.min.css");
             DOM::html()->body()->append_child_head(new script(TPL_URL . "assets/extensions/flatpickr/flatpickr.min.js"));
             DOM::html()->body()->append_child_head(new script(TPL_URL . "assets/static/js/pages/date-picker.js"));
@@ -304,16 +333,11 @@ class input_helper {
 
             $input_tag = new input("text", $field_encrypted, NULL, "k1lib-input-insert form-control flatpickr-crudlexs");
             $input_tag->set_attrib("placeholder", input_helper_strings::$input_date_placeholder);
-//            $input_tag->set_attrib("k1lib-data-datepickup", TRUE);
             $input_tag->append_to($div_input_group);
 
             $div_input_group->link_value_obj($input_tag);
             return $div_input_group;
         } else {
-            /**
-             * REGULAR INPUT FOR SIMPLE FIELDS
-             * 2025: Input with icons from field config
-             */
             $icon = $crudlex_obj->db_table->get_field_config($field, 'icon');
             if (empty($icon)) {
                 $input_tag = new input("text", $field_encrypted, NULL, "k1lib-input-insert form-control");
@@ -322,25 +346,46 @@ class input_helper {
             } else {
                 $input_icon = new input_text_with_icon($field_encrypted, NULL, $icon);
                 $input_tag = $input_icon->input();
-//                $input_tag->set_class('k1lib-input-insert', true);
                 $input_tag->set_attrib("placeholder", $crudlex_obj->db_table->get_field_config($field, 'placeholder'));
                 return $input_icon;
             }
         }
     }
 
+    /**
+     * Gets whether FK search tool is enabled.
+     *
+     * @return bool TRUE if enabled, FALSE otherwise.
+     */
     public static function get_do_fk_search_tool() {
         return self::$do_fk_search_tool;
     }
 
+    /**
+     * Gets fields excluded from FK search.
+     *
+     * @return array Array of field names to skip.
+     */
     public static function get_fk_fields_to_skip() {
         return self::$fk_fields_to_skip;
     }
 
+    /**
+     * Sets whether FK search tool is enabled.
+     *
+     * @param bool $do_fk_search_tool Whether to enable FK search.
+     * @return void
+     */
     public static function set_do_fk_search_tool($do_fk_search_tool) {
         self::$do_fk_search_tool = $do_fk_search_tool;
     }
 
+    /**
+     * Sets fields to exclude from FK search.
+     *
+     * @param array $fk_fields_to_skip Array of field names.
+     * @return void
+     */
     public static function set_fk_fields_to_skip(array $fk_fields_to_skip) {
         self::$fk_fields_to_skip = $fk_fields_to_skip;
     }
