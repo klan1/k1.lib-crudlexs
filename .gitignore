@@ -1,18 +1,38 @@
+# Dependencies
 /vendor/
 /composer.lock
+
+# IDE and OS
 .DS_Store
-.nbproject/
+.AppleDouble
+.LSOverride
 *.swp
 *.swo
 *~
+Icon
+Thumbs.db
+._*
 
-# Development artifacts
+# IDEs
+.idea/
+.vscode/
+.nbproject/
+nbproject/
+nb-configuration.xml
+
+# Development tools
 .config/
 .opencode/
 .understand-anything/
-graphify-out/cache/
-graphify-out/.graphify_labels.json
-graphify-out/.graphify_root
 
-# Keep graph.json and graph.html for team exploration
-# Do NOT ignore: graphify-out/graph.json graphify-out/graph.html
+# Graphify
+graphify-out/
+
+# App-specific (uncomment if needed for app projects)
+# /docker/db_data/
+# /docker/.env
+# /settings/db-connection-1.php
+# .env
+# bower_components/
+# /docker/xdebug-logs/
+# /public/assets/templates/smarty_tmp/*
