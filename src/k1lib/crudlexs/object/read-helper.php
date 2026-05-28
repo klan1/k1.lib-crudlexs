@@ -17,7 +17,7 @@ class read_helper
      * @param mixed $value The password value.
      * @return mixed The formatted value.
      */
-    static function password_type($value)
+    static function password_type($value): mixed
     {
         return $value;
     }
@@ -28,7 +28,7 @@ class read_helper
      * @param mixed $value The enum value.
      * @return mixed The formatted value.
      */
-    static function enum_type($value)
+    static function enum_type($value): mixed
     {
         return $value;
     }
@@ -39,7 +39,7 @@ class read_helper
      * @param mixed $value The text value.
      * @return mixed The formatted value.
      */
-    static function text_type($value)
+    static function text_type($value): mixed
     {
         return $value;
     }
@@ -50,7 +50,7 @@ class read_helper
      * @param mixed $value The file upload value.
      * @return mixed The formatted value.
      */
-    static function file_upload($value)
+    static function file_upload($value): mixed
     {
         return $value;
     }
@@ -62,7 +62,7 @@ class read_helper
      * @param mixed $value The boolean value.
      * @return string Localized "Yes" or "No" string.
      */
-    static function boolean_type($value)
+    static function boolean_type($value): string
     {
         $t = \k1lib\lang\translator::getInstance();
         if (self::$boolean_true === NULL) {
@@ -80,7 +80,7 @@ class read_helper
      * @param mixed $value The field value.
      * @return mixed The formatted value.
      */
-    static function default_type($value)
+    static function default_type($value): mixed
     {
         return $value;
     }

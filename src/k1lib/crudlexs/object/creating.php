@@ -105,7 +105,7 @@ class creating extends base_with_data implements base_interface {
      * @param bool $blank_data If TRUE, loads with empty values instead of from DB.
      * @return bool TRUE on success, FALSE otherwise.
      */
-    public function load_db_table_data($blank_data = FALSE) {
+    public function load_db_table_data($blank_data = FALSE): bool {
         if (!$blank_data) {
             return parent::load_db_table_data();
         } else {
@@ -142,7 +142,7 @@ class creating extends base_with_data implements base_interface {
      * @param mixed $value The value to assign.
      * @return bool TRUE if value was set, FALSE otherwise.
      */
-    public function set_post_incomming_value($field, $value) {
+    public function set_post_incomming_value($field, $value): bool {
         if ($this->post_data_catched && key_exists($field, $this->post_incoming_array)) {
             $this->post_incoming_array[$field] = $value;
             return TRUE;
@@ -157,7 +157,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return bool TRUE if data was transferred, FALSE otherwise.
      */
-    public function put_post_data_on_table_data() {
+    public function put_post_data_on_table_data(): bool {
         if ((empty($this->db_table_data)) || empty($this->post_incoming_array)) {
             return FALSE;
         }
@@ -176,7 +176,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return void
      */
-    function do_password_fields_validation() {
+    function do_password_fields_validation(): void {
         $password_fields = [];
         $current = null;
         $new = null;
@@ -244,7 +244,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return bool TRUE if data is captured, FALSE otherwise.
      */
-    public function get_post_data_catched() {
+    public function get_post_data_catched(): bool {
         return $this->post_data_catched;
     }
 
@@ -254,7 +254,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return bool TRUE if data was captured successfully, FALSE otherwise.
      */
-    function catch_post_data() {
+    function catch_post_data(): bool {
         $this->do_file_uploads_validation();
         $this->do_password_fields_validation();
 
@@ -322,7 +322,7 @@ class creating extends base_with_data implements base_interface {
      * @param bool $create_labels_tags_on_headers Whether to create label tags for headers.
      * @return void
      */
-    public function insert_inputs_on_data_row($create_labels_tags_on_headers = TRUE) {
+    public function insert_inputs_on_data_row($create_labels_tags_on_headers = TRUE): void {
         $row_to_apply = 1;
 
         foreach ($this->db_table_data_filtered[$row_to_apply] as $field => $value) {
@@ -408,7 +408,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return bool TRUE if no errors found, FALSE otherwise.
      */
-    public function do_post_data_validation() {
+    public function do_post_data_validation(): bool {
         $validation_result = $this->db_table->do_data_validation($this->post_incoming_array);
         if ($validation_result !== TRUE) {
             $this->post_validation_errors = array_merge($this->post_validation_errors, $validation_result);
@@ -431,7 +431,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return void
      */
-    public function do_file_uploads_validation() {
+    public function do_file_uploads_validation(): void {
         if (!empty($_FILES)) {
             foreach ($_FILES as $encoded_field => $data) {
                 $decoded_field = $this->decrypt_field_name($encoded_field);
@@ -451,7 +451,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return void
      */
-    public function enable_foundation_form_check() {
+    public function enable_foundation_form_check(): void {
         $this->enable_foundation_form_check = TRUE;
     }
 
@@ -460,7 +460,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return div|false The form container div, or FALSE if no data exists.
      */
-    public function do_html_object() {
+    public function do_html_object(): \k1lib\html\div|false {
         if (!empty($this->db_table_data_filtered)) {
             $this->div_container->set_attrib("class", "k1lib-crudlexs-create");
 
@@ -539,7 +539,7 @@ class creating extends base_with_data implements base_interface {
      * @param string $url_to_go Redirect URL (not used in current implementation).
      * @return bool TRUE on success, FALSE on error.
      */
-    public function do_insert() {
+    public function do_insert(): bool {
         $error_data = NULL;
         $sql_query = NULL;
         $this->post_incoming_array = check_all_incomming_vars($this->post_incoming_array);
@@ -564,7 +564,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return array|false Array of key values, or FALSE if not inserted.
      */
-    public function get_inserted_keys() {
+    public function get_inserted_keys(): array|false {
         if (($this->inserted) && ($this->inserted_result !== FALSE)) {
             $last_inserted_id = [];
             if (is_numeric($this->inserted_result)) {
@@ -589,7 +589,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return array|false Array of field values, or FALSE if not inserted.
      */
-    public function get_inserted_data() {
+    public function get_inserted_data(): array|false {
         if (($this->inserted) && ($this->inserted_result !== FALSE)) {
             $last_inserted_id = [];
             if (is_numeric($this->inserted_result)) {
@@ -612,7 +612,7 @@ class creating extends base_with_data implements base_interface {
      * @param bool $do_redirect If TRUE, performs header redirect; if FALSE, returns URL.
      * @return string|void Returns URL string if redirect is disabled, void otherwise.
      */
-    public function post_insert_redirect($url_to_go = "../", $do_redirect = TRUE) {
+    public function post_insert_redirect($url_to_go = "../", $do_redirect = TRUE): mixed {
         if (($this->inserted) && ($this->inserted_result !== FALSE)) {
 
             $new_keys_text = $this->db_table->db->table_keys_to_text($this->get_inserted_keys(), $this->db_table->get_db_table_config());
@@ -645,7 +645,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return array The POST data.
      */
-    function get_post_data() {
+    function get_post_data(): array {
         return $this->post_incoming_array;
     }
 
@@ -655,7 +655,7 @@ class creating extends base_with_data implements base_interface {
      * @param array $post_incoming_array The data to set.
      * @return void
      */
-    public function set_post_data(array $post_incoming_array) {
+    public function set_post_data(array $post_incoming_array): void {
         $this->post_incoming_array = array_merge($this->post_incoming_array, $post_incoming_array);
     }
 
@@ -665,7 +665,7 @@ class creating extends base_with_data implements base_interface {
      * @param string $html_column_classes The CSS classes to apply.
      * @return void
      */
-    public function set_html_column_classes($html_column_classes) {
+    public function set_html_column_classes($html_column_classes): void {
         $this->html_column_classes = $html_column_classes;
     }
 
@@ -675,7 +675,7 @@ class creating extends base_with_data implements base_interface {
      * @param string $html_form_column_classes The CSS classes to apply.
      * @return void
      */
-    public function set_html_form_column_classes($html_form_column_classes) {
+    public function set_html_form_column_classes($html_form_column_classes): void {
         $this->html_form_column_classes = $html_form_column_classes;
     }
 
@@ -684,7 +684,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return array Reference to the POST data array.
      */
-    public function &get_post_incoming_array() {
+    public function &get_post_incoming_array(): array {
         return $this->post_incoming_array;
     }
 
@@ -693,7 +693,7 @@ class creating extends base_with_data implements base_interface {
      *
      * @return array Array of validation errors.
      */
-    public function get_post_validation_errors() {
+    public function get_post_validation_errors(): array {
         return $this->post_validation_errors;
     }
 
@@ -704,7 +704,7 @@ class creating extends base_with_data implements base_interface {
      * @param bool $append_array If TRUE, appends to existing errors; if FALSE, replaces.
      * @return void
      */
-    public function set_post_validation_errors(array $errors_array, $append_array = TRUE) {
+    public function set_post_validation_errors(array $errors_array, $append_array = TRUE): void {
         if ($append_array) {
             $this->post_validation_errors = array_merge($this->post_validation_errors, $errors_array);
         } else {
@@ -718,7 +718,7 @@ class creating extends base_with_data implements base_interface {
      * @param bool $show_cancel_button Whether to show cancel button.
      * @return void
      */
-    public function set_show_cancel_button($show_cancel_button) {
+    public function set_show_cancel_button($show_cancel_button): void {
         $this->show_cancel_button = $show_cancel_button;
     }
 }

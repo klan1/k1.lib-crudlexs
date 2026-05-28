@@ -179,7 +179,7 @@ class base_with_data extends base {
      *
      * @return string The auth code.
      */
-    public function get_auth_code() {
+    public function get_auth_code(): ?string {
         return $this->auth_code;
     }
 
@@ -188,7 +188,7 @@ class base_with_data extends base {
      *
      * @param string $row_keys_text The row keys text.
      */
-    public function set_auth_code($row_keys_text) {
+    public function set_auth_code($row_keys_text): void {
         $this->auth_code = md5(K1MAGIC::get_value() . $row_keys_text);
     }
 
@@ -197,7 +197,7 @@ class base_with_data extends base {
      *
      * @return string The personal auth code.
      */
-    public function get_auth_code_personal() {
+    public function get_auth_code_personal(): ?string {
         return $this->auth_code_personal;
     }
 
@@ -206,7 +206,7 @@ class base_with_data extends base {
      *
      * @param string $row_keys_text The row keys text.
      */
-    public function set_auth_code_personal($row_keys_text) {
+    public function set_auth_code_personal($row_keys_text): void {
         $this->auth_code_personal = md5(app_session::get_user_hash() . $row_keys_text);
     }
 
@@ -215,7 +215,7 @@ class base_with_data extends base {
      *
      * @return bool TRUE if encryption is enabled.
      */
-    public function get_do_table_field_name_encrypt() {
+    public function get_do_table_field_name_encrypt(): bool {
         return $this->do_table_field_name_encrypt;
     }
 
@@ -224,7 +224,7 @@ class base_with_data extends base {
      *
      * @param bool $do_table_field_name_encryp Whether to encrypt field names.
      */
-    public function set_do_table_field_name_encrypt($do_table_field_name_encryp = TRUE) {
+    public function set_do_table_field_name_encrypt($do_table_field_name_encryp = TRUE): void {
         $this->do_table_field_name_encrypt = $do_table_field_name_encryp;
     }
 
@@ -592,7 +592,7 @@ class base_with_data extends base {
      *
      * @return bool TRUE if applied, FALSE otherwise.
      */
-    public function get_link_on_field_filter_applied() {
+    public function get_link_on_field_filter_applied(): bool {
         return $this->link_on_field_filter_applied;
     }
 
@@ -601,7 +601,7 @@ class base_with_data extends base {
      *
      * @return string The back URL.
      */
-    public function get_back_url() {
+    public function get_back_url(): mixed {
         return $this->back_url;
     }
 
@@ -610,7 +610,7 @@ class base_with_data extends base {
      *
      * @param string $back_url The URL to set.
      */
-    public function set_back_url($back_url) {
+    public function set_back_url($back_url): void {
         $this->back_url = $back_url;
     }
 
@@ -619,7 +619,7 @@ class base_with_data extends base {
      *
      * @return string|false Row keys text or FALSE if not set.
      */
-    function get_row_keys_text() {
+    function get_row_keys_text(): string|false {
         if (!empty($this->row_keys_text)) {
             return $this->row_keys_text;
         } else {
@@ -632,7 +632,7 @@ class base_with_data extends base {
      *
      * @return array|false Row keys array or FALSE if not set.
      */
-    function get_row_keys_array() {
+    function get_row_keys_array(): array|false {
         if (!empty($this->row_keys_array)) {
             return $this->row_keys_array;
         } else {
@@ -738,7 +738,7 @@ class base_with_data extends base {
      * @param int $row The row index to get label from.
      * @return string|null The label value or NULL if not found.
      */
-    public function get_labels_from_data($row = 1) {
+    public function get_labels_from_data($row = 1): string|null|false {
         if ($this->db_table_data) {
             $data_label = $this->db_table->db->get_db_table_label_fields_from_row($this->db_table_data_filtered[$row], $this->db_table->get_db_table_config());
             if (!empty($data_label)) {
@@ -756,7 +756,7 @@ class base_with_data extends base {
      *
      * @param int $row The row index to remove labels from.
      */
-    public function remove_labels_from_data_filtered($row = 1) {
+    public function remove_labels_from_data_filtered($row = 1): void {
         if ($this->db_table_data) {
             $label_fields_array = $this->db_table->get_db_table_label_fields($this->db_table->get_db_table_config());
             foreach ($label_fields_array as $field) {
@@ -770,7 +770,7 @@ class base_with_data extends base {
      *
      * @return array The table data array.
      */
-    public function get_db_table_data() {
+    public function get_db_table_data(): array {
         return $this->db_table_data;
     }
 
@@ -779,7 +779,7 @@ class base_with_data extends base {
      *
      * @return array|bool The keys array or FALSE if not set.
      */
-    public function get_db_table_data_keys() {
+    public function get_db_table_data_keys(): array|bool {
         return $this->db_table_data_keys;
     }
 
@@ -788,7 +788,7 @@ class base_with_data extends base {
      *
      * @return array|bool The filtered data array or FALSE if not set.
      */
-    public function get_db_table_data_filtered() {
+    public function get_db_table_data_filtered(): array|bool {
         return $this->db_table_data_filtered;
     }
 
@@ -797,7 +797,7 @@ class base_with_data extends base {
      *
      * @return array Custom field labels array.
      */
-    function get_custom_field_labels() {
+    function get_custom_field_labels(): array {
         return $this->custom_field_labels;
     }
 
@@ -806,7 +806,7 @@ class base_with_data extends base {
      *
      * @param array $custom_field_labels The labels to set.
      */
-    function set_custom_field_labels(array $custom_field_labels) {
+    function set_custom_field_labels(array $custom_field_labels): void {
         $this->custom_field_labels = $custom_field_labels;
     }
 
@@ -815,7 +815,7 @@ class base_with_data extends base {
      *
      * @return array Fields to hide array.
      */
-    public function get_fields_to_hide() {
+    public function get_fields_to_hide(): array {
         return $this->fields_to_hide;
     }
 
@@ -824,7 +824,7 @@ class base_with_data extends base {
      *
      * @param array $fields_to_hide The fields to hide.
      */
-    public function set_fields_to_hide(array $fields_to_hide) {
+    public function set_fields_to_hide(array $fields_to_hide): void {
         $this->fields_to_hide = $fields_to_hide;
     }
 }

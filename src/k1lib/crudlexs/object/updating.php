@@ -61,7 +61,7 @@ class updating extends creating {
      * @param bool $blank_data Not used for updating.
      * @return mixed Result from parent load method.
      */
-    public function load_db_table_data($blank_data = FALSE) {
+    public function load_db_table_data($blank_data = FALSE): mixed {
         $return_data = parent::load_db_table_data($blank_data);
 
         $url_action = url::set_url_rewrite_var(url::get_url_level_count(), "url_action", FALSE);
@@ -87,7 +87,7 @@ class updating extends creating {
      *
      * @return bool TRUE on success, FALSE on error.
      */
-    public function do_update() {
+    public function do_update(): bool {
         $error_data = NULL;
 
         $this->div_container->set_attrib("class", "k1lib-crudlexs-update");
@@ -127,7 +127,7 @@ class updating extends creating {
      * @param bool $do_redirect If TRUE, performs header redirect; if FALSE, returns URL.
      * @return string|void Returns URL string if redirect is disabled, void otherwise.
      */
-    public function post_update_redirect($url_to_go = "../../", $do_redirect = TRUE) {
+    public function post_update_redirect($url_to_go = "../../", $do_redirect = TRUE): mixed {
         if ($this->update_perfomed || $this->do_redirect) {
             $merged_key_array = array_merge(
                     $this->db_table_data_keys[1]

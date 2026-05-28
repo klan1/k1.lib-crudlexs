@@ -71,7 +71,7 @@ class search_helper extends creating {
      *
      * @return div The search form container.
      */
-    public function do_html_object() {
+    public function do_html_object(): \k1lib\html\div {
         if ($this->search_catch_post_enable && $this->catch_post_data()) {
             $this->put_post_data_on_table_data();
             $this->db_table->set_query_filter($this->post_incoming_array, FALSE);
@@ -97,7 +97,7 @@ class search_helper extends creating {
      *
      * @return bool TRUE if data captured successfully, FALSE otherwise.
      */
-    function catch_post_data() {
+    function catch_post_data(): bool {
         $search_post = unserialize_var(urlencode($this->caller_url));
         if (empty($search_post)) {
             $search_post = [];
@@ -116,7 +116,7 @@ class search_helper extends creating {
      * @param bool $search_catch_post_enable Whether to enable search POST capture.
      * @return void
      */
-    public function set_search_catch_post_enable($search_catch_post_enable) {
+    public function set_search_catch_post_enable($search_catch_post_enable): void {
         $this->search_catch_post_enable = $search_catch_post_enable;
     }
 }

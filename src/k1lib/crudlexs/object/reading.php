@@ -50,7 +50,7 @@ class reading extends base_with_data implements base_interface {
      *
      * @return div|false Returns the HTML container div, or FALSE if no data exists.
      */
-    public function do_html_object() {
+    public function do_html_object(): \k1lib\html\div|false {
         if ($this->db_table_data) {
             $this->div_container->set_attrib("class", "row k1lib-crudlexs-" . $this->css_class);
             $this->div_container->set_attrib("id", $this->object_id);
@@ -114,7 +114,7 @@ class reading extends base_with_data implements base_interface {
      *
      * @return string The HTML column classes.
      */
-    public function get_html_column_classes() {
+    public function get_html_column_classes(): string {
         return $this->html_column_classes;
     }
 
@@ -123,7 +123,7 @@ class reading extends base_with_data implements base_interface {
      *
      * @param string $html_column_classes The CSS classes to apply.
      */
-    public function set_html_column_classes($html_column_classes) {
+    public function set_html_column_classes($html_column_classes): void {
         $this->html_column_classes = $html_column_classes;
     }
 }

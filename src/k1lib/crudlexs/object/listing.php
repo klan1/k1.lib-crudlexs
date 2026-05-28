@@ -439,7 +439,7 @@ class listing extends base_with_data implements base_interface {
      *
      * @return int Rows per page value.
      */
-    function get_rows_per_page() {
+    function get_rows_per_page(): int {
         return self::$rows_per_page;
     }
 

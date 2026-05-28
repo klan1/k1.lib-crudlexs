@@ -80,7 +80,7 @@ class base {
      *
      * @return mixed The k1magic value.
      */
-    static function get_k1magic_value() {
+    static function get_k1magic_value(): mixed {
         return self::$k1magic_value;
     }
 
@@ -89,7 +89,7 @@ class base {
      *
      * @param mixed $k1magic_value The value to set.
      */
-    static function set_k1magic_value($k1magic_value) {
+    static function set_k1magic_value($k1magic_value): void {
         self::$k1magic_value = $k1magic_value;
     }
 
@@ -110,14 +110,14 @@ class base {
      *
      * @return bool TRUE if valid, FALSE otherwise.
      */
-    function is_valid() {
+    function is_valid(): bool {
         return $this->is_valid;
     }
 
     /**
      * Marks the object as invalid, preventing further processing.
      */
-    function make_invalid() {
+    function make_invalid(): void {
         $this->is_valid = FALSE;
     }
 
@@ -141,7 +141,7 @@ class base {
      *
      * @return bool TRUE if both db_table and is_valid are TRUE, FALSE otherwise.
      */
-    public function get_state() {
+    public function get_state(): bool {
         if (empty($this->db_table) || !$this->is_valid()) {
             return FALSE;
         } else {
@@ -158,7 +158,7 @@ class base {
      *
      * @return string The object ID.
      */
-    function get_object_id() {
+    function get_object_id(): ?string {
         return $this->object_id;
     }
 
@@ -168,7 +168,7 @@ class base {
      * @param string $class_name The class name to use for ID generation.
      * @return string The generated object ID.
      */
-    function set_object_id($class_name) {
+    function set_object_id($class_name): string {
         if (isset($this->db_table) && key_exists($this->db_table->get_db_table_name(), db_table_aliases::$aliases)) {
             $table_name = db_table_aliases::$aliases[$this->db_table->get_db_table_name()];
         } else if (isset($this->db_table)) {
@@ -184,7 +184,7 @@ class base {
      *
      * @return string The CSS class name.
      */
-    function get_css_class() {
+    function get_css_class(): ?string {
         return $this->css_class;
     }
 
@@ -193,7 +193,7 @@ class base {
      *
      * @param string $class_name The CSS class name to set.
      */
-    function set_css_class($class_name) {
+    function set_css_class($class_name): void {
         $this->css_class = basename(str_replace("\\", "/", $class_name));
     }
 
@@ -202,7 +202,7 @@ class base {
      *
      * @return string The DOM element ID for notifications.
      */
-    public function get_notifications_div_id() {
+    public function get_notifications_div_id(): string {
         return $this->notifications_div_id;
     }
 
@@ -211,7 +211,7 @@ class base {
      *
      * @param string $notifications_div_id The DOM element ID.
      */
-    public function set_notifications_div_id($notifications_div_id) {
+    public function set_notifications_div_id($notifications_div_id): void {
         $this->notifications_div_id = $notifications_div_id;
     }
 

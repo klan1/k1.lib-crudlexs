@@ -87,7 +87,7 @@ class input_helper {
      * @param string $case Either "create" or "update".
      * @return div Container with password inputs.
      */
-    static function password_type(creating $crudlex_obj, $field, $case = "create") {
+    static function password_type(creating $crudlex_obj, $field, $case = "create"): div {
         $field_encrypted = $crudlex_obj->encrypt_field_name($field) . "_password";
         $tag_id = $crudlex_obj->encrypt_field_name($field) . "-reveal";
         $crudlex_obj->db_table_data_filtered[1][$field] = null;
@@ -121,7 +121,7 @@ class input_helper {
      * @param string $field The field name.
      * @return select The select element with enum options.
      */
-    static function enum_type(creating $crudlex_obj, $field) {
+    static function enum_type(creating $crudlex_obj, $field): \k1lib\html\select {
         $user_rol = app_session::get_user_level();
         $enum_data = $crudlex_obj->db_table->get_enum_options($field, $user_rol);
         $input_tag = new select($field);
@@ -146,7 +146,7 @@ class input_helper {
      * @param bool $load_tinymce Whether to load TinyMCE editor.
      * @return textarea The textarea element.
      */
-    static function text_type(creating $crudlex_obj, $field, $load_tinymce = TRUE) {
+    static function text_type(creating $crudlex_obj, $field, $load_tinymce = TRUE): \k1lib\html\textarea {
         $field_encrypted = $crudlex_obj->encrypt_field_name($field);
 
         if (!empty(self::$main_css)) {
@@ -186,7 +186,7 @@ class input_helper {
      * @param string $field The field name.
      * @return div|input Container with file input or delete link.
      */
-    static function file_upload(creating $crudlex_obj, $field) {
+    static function file_upload(creating $crudlex_obj, $field): \k1lib\html\div|\k1lib\html\input {
         $field_encrypted = $crudlex_obj->encrypt_field_name($field);
 
         $input_tag = new input("file", $field_encrypted, "", "k1lib-file-upload form-control");
@@ -210,7 +210,7 @@ class input_helper {
      * @param string $field The field name.
      * @return div Container with radio button pair.
      */
-    static function boolean_type(creating $crudlex_obj, $field) {
+    static function boolean_type(creating $crudlex_obj, $field): \k1lib\html\div {
         if (self::$boolean_true === NULL) {
             self::$boolean_true = common_strings::$yes;
         }
@@ -252,7 +252,7 @@ class input_helper {
      * @param string $field The field name.
      * @return mixed The input element appropriate for the field type.
      */
-    static function default_type(creating $crudlex_obj, $field) {
+    static function default_type(creating $crudlex_obj, $field): mixed {
         $field_encrypted = $crudlex_obj->encrypt_field_name($field);
         if ((!empty($crudlex_obj->db_table->get_field_config($field, 'refereced_table_name')) && self::$do_fk_search_tool) && (array_search($field, self::$fk_fields_to_skip) === FALSE)) {
             $refereced_column_config = $crudlex_obj->db_table->get_field_config($field, 'refereced_column_config');
@@ -357,7 +357,7 @@ class input_helper {
      *
      * @return bool TRUE if enabled, FALSE otherwise.
      */
-    public static function get_do_fk_search_tool() {
+    public static function get_do_fk_search_tool(): bool {
         return self::$do_fk_search_tool;
     }
 
@@ -366,7 +366,7 @@ class input_helper {
      *
      * @return array Array of field names to skip.
      */
-    public static function get_fk_fields_to_skip() {
+    public static function get_fk_fields_to_skip(): array {
         return self::$fk_fields_to_skip;
     }
 
@@ -376,7 +376,7 @@ class input_helper {
      * @param bool $do_fk_search_tool Whether to enable FK search.
      * @return void
      */
-    public static function set_do_fk_search_tool($do_fk_search_tool) {
+    public static function set_do_fk_search_tool($do_fk_search_tool): void {
         self::$do_fk_search_tool = $do_fk_search_tool;
     }
 
@@ -386,7 +386,7 @@ class input_helper {
      * @param array $fk_fields_to_skip Array of field names.
      * @return void
      */
-    public static function set_fk_fields_to_skip(array $fk_fields_to_skip) {
+    public static function set_fk_fields_to_skip(array $fk_fields_to_skip): void {
         self::$fk_fields_to_skip = $fk_fields_to_skip;
     }
 }

@@ -13,5 +13,5 @@ interface base_interface {
      *
      * @return mixed The HTML object representation, or FALSE if rendering fails.
      */
-    public function do_html_object();
+    public function do_html_object(): mixed;
 }
