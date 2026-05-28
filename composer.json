@@ -18,7 +18,7 @@
     },
     "autoload": {
         "psr-4": {
-            "k1lib\\crudlexs\\": "src/klan1/crudlexs/"
+            "k1lib\\crudlexs\\": "src/k1lib/crudlexs/"
         }
     }
 }
