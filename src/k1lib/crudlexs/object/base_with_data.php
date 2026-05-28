@@ -507,7 +507,7 @@ class base_with_data extends base {
                                         $tag_value = $tag_object->get_attribute("alt");
                                     } else {
                                         $a_tags = $tag_object->get_elements_by_tag("a");
-                                        if (count($a_tags) === 1) {
+                                        if (!empty($a_tags) && count($a_tags) === 1) {
                                             $tag_href = $a_tags[0]->get_attribute("href");
                                             $tag_value = $a_tags[0]->get_value();
                                         } else {
