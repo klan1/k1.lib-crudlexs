@@ -59,7 +59,7 @@ class updating extends creating {
      * Handles URL action for unlinking uploaded files before loading data.
      *
      * @param bool $blank_data Not used for updating.
-     * @return mixed Result from parent load method.
+     * @return bool Result from parent load method.
      */
     public function load_db_table_data($blank_data = FALSE): bool {
         $return_data = parent::load_db_table_data($blank_data);
