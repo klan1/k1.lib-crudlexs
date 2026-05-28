@@ -61,7 +61,7 @@ class updating extends creating {
      * @param bool $blank_data Not used for updating.
      * @return mixed Result from parent load method.
      */
-    public function load_db_table_data($blank_data = FALSE): mixed {
+    public function load_db_table_data($blank_data = FALSE): bool {
         $return_data = parent::load_db_table_data($blank_data);
 
         $url_action = url::set_url_rewrite_var(url::get_url_level_count(), "url_action", FALSE);
